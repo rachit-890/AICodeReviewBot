@@ -115,7 +115,7 @@ public class LLMService {
             }
 
             return ReviewResponse.builder()
-                    .prUrl(prData.getRepository())
+                    .prUrl(prData.getPrUrl())
                     .prTitle(prData.getTitle())
                     .repository(prData.getRepository())
                     .summary(summary)

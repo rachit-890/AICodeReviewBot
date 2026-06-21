@@ -4,11 +4,13 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class ReviewResponse {
 
+    private UUID id;
     private String prUrl;
     private String prTitle;
     private String repository;
@@ -16,6 +18,8 @@ public class ReviewResponse {
     private int overallScore;
     private List<Finding> findings;
     private LocalDateTime reviewedAt;
+
+
 
     @Data
     @Builder

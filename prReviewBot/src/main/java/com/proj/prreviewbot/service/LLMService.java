@@ -30,13 +30,11 @@ public class LLMService {
         // 1. Build the model
         GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(geminiApiKey)
-                .modelName("gemini-1.5-flash")
+                .modelName("gemini-2.5-flash")
                 .build();
 
         // 2. Build the prompt
         String prompt = buildPrompt(prData);
-
-        // 3. Call Gemini
         String rawResponse = model.chat(prompt);
 
         // 4. Parse and return

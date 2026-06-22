@@ -1,5 +1,7 @@
 package com.proj.prreviewbot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,5 +49,6 @@ public class Review {
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL,
             fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties("review")
     private List<Finding> findings = new ArrayList<>();
 }

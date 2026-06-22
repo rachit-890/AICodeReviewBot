@@ -1,5 +1,6 @@
 package com.proj.prreviewbot.service;
 
+import com.proj.prreviewbot.dto.ReviewDetailResponse;
 import com.proj.prreviewbot.dto.ReviewResponse;
 import com.proj.prreviewbot.entity.Finding;
 import com.proj.prreviewbot.entity.Review;
@@ -22,7 +23,6 @@ public class ReviewPersistenceService {
 
     @Transactional
     public Review saveReview(ReviewResponse response, String headCommitSha) {
-        // 1. Build Review entity
         Review review = Review.builder()
                 .prUrl(response.getPrUrl())
                 .prTitle(response.getPrTitle())
@@ -33,7 +33,6 @@ public class ReviewPersistenceService {
                 .headCommitSha(headCommitSha)
                 .build();
 
-        // 2. Build Finding entities
         List<Finding> findings = response.getFindings().stream()
                 .map(f -> Finding.builder()
                         .review(review)
@@ -49,19 +48,53 @@ public class ReviewPersistenceService {
 
         review.getFindings().addAll(findings);
 
-        // 3. Save (cascades to findings automatically)
         Review saved = reviewRepository.save(review);
         log.info("Saved review {} with {} findings", saved.getId(), findings.size());
         return saved;
     }
 
-    public Review getReviewById(UUID id) {
-        return reviewRepository.findById(id)
+    @Transactional(readOnly = true)
+    public ReviewDetailResponse getReviewById(UUID id) {
+        Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Review not found with id: " + id));
+        return toDetailResponse(review);
     }
 
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAllByOrderByReviewedAtDesc();
+    @Transactional(readOnly = true)
+    public List<ReviewDetailResponse> getAllReviews() {
+        return reviewRepository.findAllByOrderByReviewedAtDesc()
+                .stream()
+                .map(this::toDetailResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Convert entity to DTO while session is still open
+    private ReviewDetailResponse toDetailResponse(Review review) {
+        List<ReviewDetailResponse.FindingDetail> findings = review.getFindings()
+                .stream()
+                .map(f -> ReviewDetailResponse.FindingDetail.builder()
+                        .id(f.getId())
+                        .severity(f.getSeverity())
+                        .category(f.getCategory())
+                        .file(f.getFilePath())
+                        .line(f.getLineNumber())
+                        .title(f.getTitle())
+                        .description(f.getDescription())
+                        .suggestion(f.getSuggestion())
+                        .build())
+                .collect(Collectors.toList());
+
+        return ReviewDetailResponse.builder()
+                .id(review.getId())
+                .prUrl(review.getPrUrl())
+                .prTitle(review.getPrTitle())
+                .repository(review.getRepository())
+                .summary(review.getSummary())
+                .overallScore(review.getOverallScore())
+                .headCommitSha(review.getHeadCommitSha())
+                .reviewedAt(review.getReviewedAt())
+                .findings(findings)
+                .build();
     }
 }

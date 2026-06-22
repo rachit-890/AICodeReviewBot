@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 public class GitHubPRData {
     private String title;
+    private String prUrl;
     private String author;
     private String repository;
     private String headCommitSha;

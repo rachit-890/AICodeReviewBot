@@ -61,12 +61,12 @@ public class GitHubService {
                 .bodyToMono(String.class)
                 .block();
 
-        // 4. Parse and build GitHubPRData
-        return parsePRData(prMetadataJson, filesJson, owner, repo);
+        // 4. Pass prUrl into parsePRData
+        return parsePRData(prMetadataJson, filesJson, owner, repo, prUrl);
     }
 
     private GitHubPRData parsePRData(String metaJson, String filesJson,
-                                     String owner, String repo) {
+                                     String owner, String repo, String prUrl) {
         try {
             JsonNode meta  = objectMapper.readTree(metaJson);
             JsonNode files = objectMapper.readTree(filesJson);
@@ -93,7 +93,6 @@ public class GitHubService {
                 }
             }
 
-            // Truncate if too large
             String fullDiff = diffBuilder.toString();
             if (fullDiff.length() > MAX_DIFF_CHARS) {
                 fullDiff = fullDiff.substring(0, MAX_DIFF_CHARS)
@@ -101,6 +100,7 @@ public class GitHubService {
             }
 
             return GitHubPRData.builder()
+                    .prUrl(prUrl)              // ← now resolves correctly
                     .title(title)
                     .author(author)
                     .repository(owner + "/" + repo)

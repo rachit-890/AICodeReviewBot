@@ -13,6 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rachit -d codereviewdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -22,6 +27,31 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: prreviewbot-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/codereviewdb
+      SPRING_DATASOURCE_USERNAME: rachit
+      SPRING_DATASOURCE_PASSWORD: rachit123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:

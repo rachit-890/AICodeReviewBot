@@ -34,6 +34,11 @@ public class GitHubService {
     }
 
     public GitHubPRData fetchPRData(String prUrl) {
+
+        if (prUrl == null || prUrl.isBlank()) {
+            throw new IllegalArgumentException("PR URL cannot be null or empty");
+        }
+
         // 1. Parse the URL
         Matcher matcher = PR_URL_PATTERN.matcher(prUrl);
         if (!matcher.matches()) {

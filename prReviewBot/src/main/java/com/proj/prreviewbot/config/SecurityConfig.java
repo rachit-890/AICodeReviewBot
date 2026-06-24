@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/v1/health-check").permitAll()
+                        .requestMatchers("/api/v1/keys/generate").permitAll()
                         .anyRequest().permitAll()
                 );
         return http.build();

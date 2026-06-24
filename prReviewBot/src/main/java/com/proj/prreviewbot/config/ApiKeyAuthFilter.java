@@ -36,7 +36,9 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Skip filter for health endpoints
-        if (path.startsWith("/actuator") || path.equals("/api/v1/health-check")) {
+        if (path.startsWith("/actuator") ||
+                path.equals("/api/v1/health-check") ||
+                path.equals("/api/v1/keys/generate")) {
             filterChain.doFilter(request, response);
             return;
         }

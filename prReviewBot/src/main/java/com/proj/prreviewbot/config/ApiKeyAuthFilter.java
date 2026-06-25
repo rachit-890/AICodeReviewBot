@@ -38,11 +38,11 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         // Skip filter for health endpoints
         if (path.startsWith("/actuator") ||
                 path.equals("/api/v1/health-check") ||
-                path.equals("/api/v1/keys/generate")) {
+                path.equals("/api/v1/keys/generate") ||
+                path.startsWith("/api/v1/webhook")) {
             filterChain.doFilter(request, response);
             return;
         }
-
         // 1. Validate API key
         String apiKey = request.getHeader("X-API-Key");
         ApiKeyValidationResult validation = apiKeyService.validate(apiKey);

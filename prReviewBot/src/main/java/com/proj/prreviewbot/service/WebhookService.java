@@ -38,23 +38,22 @@ public class WebhookService {
      * GitHub sends HMAC-SHA256 of payload signed with your webhook secret
      */
     public boolean verifySignature(String payload, String signature) {
-//        if (signature == null || !signature.startsWith("sha256=")) {
-//            return false;
-//        }
-//        try {
-//            Mac mac = Mac.getInstance("HmacSHA256");
-//            SecretKeySpec secretKey = new SecretKeySpec(
-//                    webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-//            mac.init(secretKey);
-//            byte[] hash = mac.doFinal(
-//                    payload.getBytes(StandardCharsets.UTF_8));
-//            String expectedSignature = "sha256=" + HexFormat.of().formatHex(hash);
-//            return expectedSignature.equals(signature);
-//        } catch (Exception e) {
-//            log.error("Signature verification failed: {}", e.getMessage());
-//            return false;
-//        }
-        return true;
+        if (signature == null || !signature.startsWith("sha256=")) {
+            return false;
+        }
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(
+                    webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            mac.init(secretKey);
+            byte[] hash = mac.doFinal(
+                    payload.getBytes(StandardCharsets.UTF_8));
+            String expectedSignature = "sha256=" + HexFormat.of().formatHex(hash);
+            return expectedSignature.equals(signature);
+        } catch (Exception e) {
+            log.error("Signature verification failed: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**

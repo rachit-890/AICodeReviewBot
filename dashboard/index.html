@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Review Bot - Interactive Flowchart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.2);
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-color);
+        }
+
+        .logo span {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .badge {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr 420px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            height: calc(100vh - 73px);
+            max-height: calc(100vh - 73px);
+        }
+
+        /* Panels layout */
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            padding: 1.25rem;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* Left Panel - Simulation Control */
+        .simulation-mode-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .simulation-mode-btn:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+        }
+
+        .simulation-mode-btn.active {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .simulation-mode-btn .btn-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .simulation-mode-btn.active .btn-title {
+            color: var(--primary);
+        }
+
+        .simulation-mode-btn .btn-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .config-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #000;
+            font-weight: 600;
+            padding: 0.85rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .trigger-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Middle Panel - Visual Flow */
+        .middle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        .canvas-card {
+            flex: 1;
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flowchart-svg {
+            width: 100%;
+            height: 100%;
+            max-height: 550px;
+        }
+
+        /* Console log panel */
+        .console-card {
+            height: 180px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .console-header {
+            padding: 0.6rem 1rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .console-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .console-dot.green { background: var(--success); }
+        .console-dot.yellow { background: var(--warning); }
+        .console-dot.red { background: var(--danger); }
+
+        .console-body {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            scroll-behavior: smooth;
+        }
+
+        .log-line {
+            line-height: 1.4;
+        }
+
+        .log-line.info { color: #38bdf8; }
+        .log-line.success { color: #10b981; }
+        .log-line.warn { color: #fbbf24; }
+        .log-line.error { color: #f87171; }
+        .log-line.system { color: #a78bfa; }
+
+        /* Right Panel - Code & Details */
+        .sidebar-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 0.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .sidebar-tab.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-container {
+            background: rgba(10, 15, 30, 0.8);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            overflow-x: auto;
+            max-height: 380px;
+            white-space: pre;
+            color: #e2e8f0;
+        }
+
+        .highlight-keyword { color: #f472b6; }
+        .highlight-type { color: #60a5fa; }
+        .highlight-string { color: #34d399; }
+        .highlight-comment { color: #6b7280; font-style: italic; }
+        .highlight-annotation { color: #fbbf24; }
+
+        .details-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .details-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .details-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .details-val {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* SVG Node classes */
+        .node {
+            cursor: pointer;
+            transition: filter 0.3s;
+        }
+
+        .node:hover {
+            filter: drop-shadow(0px 0px 8px rgba(56, 189, 248, 0.6));
+        }
+
+        .node-rect {
+            fill: #1e293b;
+            stroke: rgba(255, 255, 255, 0.15);
+            stroke-width: 1.5;
+            transition: all 0.3s;
+        }
+
+        .node.active .node-rect {
+            stroke: var(--primary);
+            fill: rgba(56, 189, 248, 0.12);
+            stroke-width: 2.5;
+        }
+
+        .node.success-state .node-rect {
+            stroke: var(--success);
+            fill: rgba(16, 185, 129, 0.1);
+        }
+
+        .node.error-state .node-rect {
+            stroke: var(--danger);
+            fill: rgba(239, 68, 68, 0.1);
+        }
+
+        .node-title {
+            fill: var(--text-color);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .node-subtitle {
+            fill: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* Connection Path animation */
+        .flow-path {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 2;
+            transition: all 0.3s;
+        }
+
+        .flow-path.active {
+            stroke: var(--primary);
+            stroke-dasharray: 8 4;
+            animation: flowDash 30s linear infinite;
+        }
+
+        .flow-path.active-success {
+            stroke: var(--success);
+            stroke-dasharray: 8 4;
+            animation: flowDash 30s linear infinite;
+        }
+
+        .flow-path.active-error {
+            stroke: var(--danger);
+            stroke-dasharray: 8 4;
+            animation: flowDash 15s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>🤖</span> AI Code Reviewer Bot
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="badge">Flyway migrations: 2 active</div>
+            <div class="badge" style="background: rgba(168, 85, 247, 0.1); color: var(--accent); border-color: rgba(168, 85, 247, 0.2);">Gemini 1.5 Flash Active</div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left Panel: Configurations -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Simulation Controls</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Trigger event</span>
+            </div>
+            <div class="panel-content">
+                <div class="section-title">Trigger Event Mode</div>
+                <button class="simulation-mode-btn active" id="mode-webhook" onclick="setMode('webhook')">
+                    <span class="btn-title">GitHub Webhook Event</span>
+                    <span class="btn-desc">Simulate PR Open or Synchronize commits push</span>
+                </button>
+                <button class="simulation-mode-btn" id="mode-rest" onclick="setMode('rest')">
+                    <span class="btn-title">Client REST API Call</span>
+                    <span class="btn-desc">Direct post request to /api/v1/review endpoint</span>
+                </button>
+
+                <div class="section-title">Parameters & Configs</div>
+                <div class="config-group">
+                    <div class="config-row">
+                        <span class="config-label">Valid Security Auth</span>
+                        <label class="switch">
+                            <input type="checkbox" id="param-valid-auth" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="config-row">
+                        <span class="config-label">Rate Limit Allowed</span>
+                        <label class="switch">
+                            <input type="checkbox" id="param-rate-limit" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="config-row">
+                        <span class="config-label">Redis Cache Hit</span>
+                        <label class="switch">
+                            <input type="checkbox" id="param-cache-hit">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="config-row">
+                        <span class="config-label">Gemini Parse Success</span>
+                        <label class="switch">
+                            <input type="checkbox" id="param-gemini-success" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="trigger-btn" onclick="startSimulation()">
+                    ▶ Start Simulation
+                </button>
+            </div>
+        </div>
+
+        <!-- Middle Panel: Visualization Canvas & Console -->
+        <div class="middle-container">
+            <div class="canvas-card">
+                <svg class="flowchart-svg" viewBox="0 0 800 520" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="rgba(255, 255, 255, 0.15)"/>
+                        </marker>
+                        <marker id="arrow-active" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                        </marker>
+                        <marker id="arrow-success" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/>
+                        </marker>
+                        <marker id="arrow-danger" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Flow connections -->
+                    <!-- Path 1: Trigger to Auth -->
+                    <path id="path-trigger-auth" d="M 120 100 L 260 100" class="flow-path" marker-end="url(#arrow)"/>
+                    
+                    <!-- Path 2: Auth to RateLimit -->
+                    <path id="path-auth-ratelimit" d="M 380 100 L 520 100" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Path 3: RateLimit to Cache -->
+                    <path id="path-ratelimit-cache" d="M 580 140 L 580 220" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Path 4: Cache to LLM (Cache Miss) -->
+                    <path id="path-cache-llm" d="M 580 300 L 580 380" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Path 5: Cache to Response (Cache Hit) -->
+                    <path id="path-cache-response" d="M 500 260 L 320 260 L 320 380" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Path 6: LLM to DB -->
+                    <path id="path-llm-db" d="M 520 420 L 380 420" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Path 7: DB to Response -->
+                    <path id="path-db-response" d="M 260 420 L 120 420" class="flow-path" marker-end="url(#arrow)"/>
+
+                    <!-- Interactive Nodes -->
+                    <!-- Node 1: Request Trigger -->
+                    <g class="node" id="node-trigger" onclick="selectNode('trigger')">
+                        <rect x="20" y="60" width="100" height="80" rx="10" class="node-rect"/>
+                        <text x="70" y="100" text-anchor="middle" class="node-title">Request Trigger</text>
+                        <text x="70" y="118" text-anchor="middle" class="node-subtitle" id="node-trigger-sub">Webhook / Post</text>
+                    </g>
+
+                    <!-- Node 2: Security Auth -->
+                    <g class="node" id="node-auth" onclick="selectNode('auth')">
+                        <rect x="260" y="60" width="120" height="80" rx="10" class="node-rect"/>
+                        <text x="320" y="98" text-anchor="middle" class="node-title">Security Filter</text>
+                        <text x="320" y="116" text-anchor="middle" class="node-subtitle" id="node-auth-sub">verifySignature</text>
+                    </g>
+
+                    <!-- Node 3: Rate Limiter -->
+                    <g class="node" id="node-ratelimit" onclick="selectNode('ratelimit')">
+                        <rect x="520" y="60" width="120" height="80" rx="10" class="node-rect"/>
+                        <text x="580" y="98" text-anchor="middle" class="node-title">Rate Limiter</text>
+                        <text x="580" y="116" text-anchor="middle" class="node-subtitle">Redis Check</text>
+                    </g>
+
+                    <!-- Node 4: Cache Service -->
+                    <g class="node" id="node-cache" onclick="selectNode('cache')">
+                        <rect x="500" y="220" width="160" height="80" rx="10" class="node-rect"/>
+                        <text x="580" y="258" text-anchor="middle" class="node-title">Review Cache</text>
+                        <text x="580" y="276" text-anchor="middle" class="node-subtitle">Redis MD5 Lookup</text>
+                    </g>
+
+                    <!-- Node 5: Gemini LLM -->
+                    <g class="node" id="node-llm" onclick="selectNode('llm')">
+                        <rect x="500" y="380" width="160" height="80" rx="10" class="node-rect"/>
+                        <text x="580" y="418" text-anchor="middle" class="node-title">Gemini LLM</text>
+                        <text x="580" y="436" text-anchor="middle" class="node-subtitle" style="fill: var(--accent);">gemini-1.5-flash</text>
+                    </g>
+
+                    <!-- Node 6: Persistence -->
+                    <g class="node" id="node-db" onclick="selectNode('db')">
+                        <rect x="260" y="380" width="120" height="80" rx="10" class="node-rect"/>
+                        <text x="320" y="418" text-anchor="middle" class="node-title">DB Persistence</text>
+                        <text x="320" y="436" text-anchor="middle" class="node-subtitle">PostgreSQL</text>
+                    </g>
+
+                    <!-- Node 7: Output Response -->
+                    <g class="node" id="node-response" onclick="selectNode('response')">
+                        <rect x="20" y="380" width="100" height="80" rx="10" class="node-rect"/>
+                        <text x="70" y="418" text-anchor="middle" class="node-title">Output Post</text>
+                        <text x="70" y="436" text-anchor="middle" class="node-subtitle" id="node-response-sub">GitHub Comment</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Console Card -->
+            <div class="console-card">
+                <div class="console-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="console-dot green"></span>
+                        <span class="console-dot yellow"></span>
+                        <span class="console-dot red"></span>
+                        <span style="margin-left: 0.5rem;">Application Logs</span>
+                    </div>
+                    <span>stdout</span>
+                </div>
+                <div class="console-body" id="console-body">
+                    <div class="log-line system">[System] Application loaded. Select trigger mode and configuration parameters to run a live demonstration.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Code Inspect / Details -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Component Inspector</span>
+                <span id="inspect-component-name" style="color: var(--primary);">Trigger</span>
+            </div>
+            <div class="panel-content">
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" id="tab-code" onclick="setTab('code')">Java Source</button>
+                    <button class="sidebar-tab" id="tab-details" onclick="setTab('details')">Component Info</button>
+                </div>
+
+                <div id="inspector-code-wrapper">
+                    <div class="code-container" id="inspector-code"></div>
+                </div>
+
+                <div id="inspector-details-wrapper" style="display: none;">
+                    <div class="details-list" id="inspector-details"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentMode = 'webhook';
+        let currentTab = 'code';
+        let selectedComponent = 'trigger';
+        let isSimulating = false;
+
+        const nodeData = {
+            trigger: {
+                title: "Request Trigger",
+                subtitle: "Webhook / Post",
+                desc: "Defines the incoming entrypoint of the bot. The webhook listens for GitHub Pull Request changes, while the REST controller exposes a direct API for code review integration.",
+                code: {
+                    webhook: `<span class="highlight-annotation">@PostMapping</span>("/github")
+<span class="highlight-keyword">public</span> ResponseEntity&lt;Map&lt;String, String&gt;&gt; handleGitHubWebhook(
+        <span class="highlight-annotation">@RequestHeader</span>("X-Hub-Signature-256") String sig,
+        <span class="highlight-annotation">@RequestHeader</span>("X-GitHub-Event") String event,
+        <span class="highlight-annotation">@RequestBody</span> String rawPayload) {
+    <span class="highlight-comment">// Parses GitHub PR details and kicks off review</span>
+    webhookService.processWebhook(payload);
+    <span class="highlight-keyword">return</span> ResponseEntity.ok(Map.of("message", "Processing"));
+}`,
+                    rest: `<span class="highlight-annotation">@PostMapping</span>("/review")
+<span class="highlight-keyword">public</span> ResponseEntity&lt;ReviewResponse&gt; review(
+        <span class="highlight-annotation">@Valid</span> <span class="highlight-annotation">@RequestBody</span> ReviewRequest request) {
+    <span class="highlight-comment">// Fetches PR and executes synchronously for API clients</span>
+    GitHubPRData prData = gitHubService.fetchPRData(request.getPrUrl());
+    ReviewResponse response = llmService.review(prData);
+    <span class="highlight-keyword">return</span> ResponseEntity.ok(response);
+}`
+                },
+                info: [
+                    { label: "Trigger Endpoint", val: "POST /api/v1/webhook/github OR POST /api/v1/review" },
+                    { label: "Input Format", val: "JSON payload containing prUrl or GitHub Webhook event structure" },
+                    { label: "Security Filter Level", val: "Delegates verification to down-stream security layer" }
+                ]
+            },
+            auth: {
+                title: "Security Filter",
+                subtitle: "Auth & Signature Check",
+                desc: "Secures endpoint communication. For GitHub webhooks, verifies payloads using HMAC-SHA256 signature checking. For direct REST API calls, authenticates custom tokens using SHA-256 hashes matched directly via the database.",
+                code: {
+                    webhook: `<span class="highlight-keyword">public boolean</span> verifySignature(String payload, String signature) {
+    <span class="highlight-comment">// Restored Secure Signature Verification</span>
+    Mac mac = Mac.getInstance("HmacSHA256");
+    SecretKeySpec secretKey = <span class="highlight-keyword">new</span> SecretKeySpec(
+            webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+    mac.init(secretKey);
+    <span class="highlight-keyword">byte</span>[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+    String expected = "sha256=" + HexFormat.of().formatHex(hash);
+    <span class="highlight-keyword">return</span> expected.equals(signature);
+}`,
+                    rest: `<span class="highlight-keyword">public</span> ApiKeyValidationResult validate(String rawKey) {
+    <span class="highlight-comment">// Optimized O(1) SHA-256 DB Hash Lookup</span>
+    String hashedKey = hashKey(rawKey);
+    Optional&lt;ApiKey&gt; key = apiKeyRepository
+            .findByKeyHashAndActiveTrue(hashedKey);
+    <span class="highlight-keyword">if</span> (key.isEmpty()) <span class="highlight-keyword">return</span> invalid("Invalid key");
+    <span class="highlight-keyword">return</span> valid(key.get().getClientName());
+}`
+                },
+                info: [
+                    { label: "Filter Type", val: "OncePerRequestFilter / HMAC Webhook Verification" },
+                    { label: "Security Hashing", val: "SHA-256 Hashing / HmacSHA256 signature verification" },
+                    { label: "Vulnerability Fix", val: "Eliminated O(N) BCrypt lookup DoS vulnerability by shifting to O(1) indexed SQL query" }
+                ]
+            },
+            ratelimit: {
+                title: "Rate Limiter",
+                subtitle: "Redis Limit Check",
+                desc: "Prevents API abuse and token exhaustion by rate limiting direct API clients to 10 requests per minute using Redis's increment operation with a rolling 1-minute window TTL.",
+                code: {
+                    webhook: `<span class="highlight-keyword">public boolean</span> isAllowed(String clientId) {
+    String key = "rate_limit:" + clientId;
+    Long count = redisTemplate.opsForValue().increment(key);
+    <span class="highlight-keyword">if</span> (count != <span class="highlight-keyword">null</span> && count == 1) {
+        redisTemplate.expire(key, Duration.ofMinutes(1));
+    }
+    <span class="highlight-keyword">return</span> count != <span class="highlight-keyword">null</span> && count &lt;= 10;
+}`,
+                    rest: `<span class="highlight-keyword">public boolean</span> isAllowed(String clientId) {
+    String key = "rate_limit:" + clientId;
+    Long count = redisTemplate.opsForValue().increment(key);
+    <span class="highlight-keyword">if</span> (count != <span class="highlight-keyword">null</span> && count == 1) {
+        redisTemplate.expire(key, Duration.ofMinutes(1));
+    }
+    <span class="highlight-keyword">return</span> count != <span class="highlight-keyword">null</span> && count &lt;= 10;
+}`
+                },
+                info: [
+                    { label: "Storage Engine", val: "Redis Key-Value Cache" },
+                    { label: "Limit Threshold", val: "10 requests per minute per authenticated client ID" },
+                    { label: "Redis Key pattern", val: "rate_limit:{clientId}" }
+                ]
+            },
+            cache: {
+                title: "Review Cache",
+                subtitle: "Redis Cache Lookup",
+                desc: "Interceptors query Redis using a standardized MD5 hash of the Pull Request URL + commit SHA. If a cached review matches the current commit hash, the bot immediately returns it, avoiding redundant LLM costs.",
+                code: {
+                    webhook: `<span class="highlight-keyword">private</span> String buildCacheKey(String prUrl, String commitSha) {
+    <span class="highlight-comment">// Standardized Cache Keys using MD5</span>
+    MessageDigest digest = MessageDigest.getInstance("MD5");
+    <span class="highlight-keyword">byte</span>[] hash = digest.digest(prUrl.getBytes(StandardCharsets.UTF_8));
+    String urlHash = HexFormat.of().formatHex(hash);
+    <span class="highlight-keyword">return</span> "review_cache:" + urlHash + ":" + commitSha;
+}`,
+                    rest: `<span class="highlight-keyword">private</span> String buildCacheKey(String prUrl, String commitSha) {
+    <span class="highlight-comment">// Standardized Cache Keys using MD5</span>
+    MessageDigest digest = MessageDigest.getInstance("MD5");
+    <span class="highlight-keyword">byte</span>[] hash = digest.digest(prUrl.getBytes(StandardCharsets.UTF_8));
+    String urlHash = HexFormat.of().formatHex(hash);
+    <span class="highlight-keyword">return</span> "review_cache:" + urlHash + ":" + commitSha;
+}`
+                },
+                info: [
+                    { label: "Storage Engine", val: "Redis Key-Value store" },
+                    { label: "Expiration TTL", val: "1 Hour (Duration.ofHours(1))" },
+                    { label: "Improvement", val: "Shifted from JVM hashCode() to standardized MD5 hashes for environment-agnostic keys" }
+                ]
+            },
+            llm: {
+                title: "Gemini LLM Analyzer",
+                subtitle: "gemini-1.5-flash",
+                desc: "Queries Google Gemini Chat Model using Langchain4j. Sends the code diff alongside structured schema rules. Receives and strips JSON markdown fences, parsing findings directly into a model payload.",
+                code: {
+                    webhook: `<span class="highlight-keyword">public</span> ReviewResponse review(GitHubPRData prData) {
+    GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
+            .apiKey(geminiApiKey)
+            .modelName("gemini-1.5-flash") <span class="highlight-comment">// Corrected model</span>
+            .build();
+    String prompt = buildPrompt(prData);
+    String rawResponse = model.chat(prompt);
+    <span class="highlight-keyword">return</span> parseResponse(rawResponse, prData);
+}`,
+                    rest: `<span class="highlight-keyword">public</span> ReviewResponse review(GitHubPRData prData) {
+    GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
+            .apiKey(geminiApiKey)
+            .modelName("gemini-1.5-flash") <span class="highlight-comment">// Corrected model</span>
+            .build();
+    String prompt = buildPrompt(prData);
+    String rawResponse = model.chat(prompt);
+    <span class="highlight-keyword">return</span> parseResponse(rawResponse, prData);
+}`
+                },
+                info: [
+                    { label: "Model Name", val: "gemini-1.5-flash (corrected from non-existent gemini-2.5-flash)" },
+                    { label: "Output Schema", val: "JSON object containing score, summary, and array of severity/file findings" },
+                    { label: "Parsing Strategy", val: "Strips markdown backticks (```json ... ```) safely before mapping to DTO" }
+                ]
+            },
+            db: {
+                title: "DB Persistence",
+                subtitle: "PostgreSQL Database",
+                desc: "Saves code review findings, metadata, summaries, and overall quality scores inside relational tables. Flyway migrations enforce indexes on pull request URLs and parent foreign key dependencies.",
+                code: {
+                    webhook: `<span class="highlight-annotation">@Transactional</span>
+<span class="highlight-keyword">public</span> Review saveReview(ReviewResponse response, String commit) {
+    Review review = Review.builder()
+            .prUrl(response.getPrUrl())
+            .summary(response.getSummary())
+            .overallScore(response.getOverallScore())
+            .headCommitSha(commit)
+            .build();
+    <span class="highlight-keyword">return</span> reviewRepository.save(review);
+}`,
+                    rest: `<span class="highlight-annotation">@Transactional</span>
+<span class="highlight-keyword">public</span> Review saveReview(ReviewResponse response, String commit) {
+    Review review = Review.builder()
+            .prUrl(response.getPrUrl())
+            .summary(response.getSummary())
+            .overallScore(response.getOverallScore())
+            .headCommitSha(commit)
+            .build();
+    <span class="highlight-keyword">return</span> reviewRepository.save(review);
+}`
+                },
+                info: [
+                    { label: "Database Engine", val: "PostgreSQL" },
+                    { label: "ORM", val: "Spring Data JPA / Hibernate" },
+                    { label: "Flyway Migration", val: "V1__create_tables.sql / V2__create_api_keys_table.sql" }
+                ]
+            },
+            response: {
+                title: "Output Post",
+                subtitle: "GitHub Comment / Rest Output",
+                desc: "Returns the review details back to the requester. For webhook flow, the bot makes an asynchronous HTTP POST request to post a formatted markdown comment directly to the pull request on GitHub. For REST API, returns the JSON body to the client.",
+                code: {
+                    webhook: `<span class="highlight-keyword">private void</span> postReviewComment(WebhookPayload payload, ReviewResponse response) {
+    String comment = buildCommentBody(response);
+    webClient.post()
+            .uri("/repos/{repo}/issues/{number}/comments", fullname, prNumber)
+            .header("Authorization", "Bearer " + githubToken)
+            .bodyValue(Map.of("body", comment))
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+}`,
+                    rest: `<span class="highlight-comment">// Controller direct response returns 200 OK</span>
+<span class="highlight-keyword">return</span> ResponseEntity.ok(response);`
+                },
+                info: [
+                    { label: "Webhook Response type", val: "Async post call to GitHub comments API" },
+                    { label: "API Response type", val: "Sync JSON payload with HTTP 200 OK status" },
+                    { label: "Formatting", val: "Markdown tables/emojis showing security alerts, styling bugs, and code suggestions" }
+                ]
+            }
+        };
+
+        function setMode(mode) {
+            if (isSimulating) return;
+            currentMode = mode;
+            document.getElementById('mode-webhook').classList.toggle('active', mode === 'webhook');
+            document.getElementById('mode-rest').classList.toggle('active', mode === 'rest');
+            
+            // Update labels dynamically
+            document.getElementById('node-trigger-sub').innerText = mode === 'webhook' ? 'Webhook Payload' : 'POST /review';
+            document.getElementById('node-auth-sub').innerText = mode === 'webhook' ? 'verifySignature' : 'ApiKeyAuthFilter';
+            document.getElementById('node-response-sub').innerText = mode === 'webhook' ? 'GitHub Comment' : 'Client Response';
+            
+            // Refresh code inspector
+            selectNode(selectedComponent);
+            
+            log(`[System] Switched trigger mode to: ${mode.toUpperCase()}`, 'system');
+        }
+
+        function setTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-code').classList.toggle('active', tab === 'code');
+            document.getElementById('tab-details').classList.toggle('active', tab === 'details');
+            
+            document.getElementById('inspector-code-wrapper').style.display = tab === 'code' ? 'block' : 'none';
+            document.getElementById('inspector-details-wrapper').style.display = tab === 'details' ? 'block' : 'none';
+        }
+
+        function selectNode(comp) {
+            selectedComponent = comp;
+            
+            // Highlight selected node in UI
+            document.querySelectorAll('.node').forEach(el => el.classList.remove('active'));
+            const activeNode = document.getElementById(`node-${comp}`);
+            if (activeNode) activeNode.classList.add('active');
+
+            // Update component name header
+            document.getElementById('inspect-component-name').innerText = nodeData[comp].title;
+
+            // Update source code
+            document.getElementById('inspector-code').innerHTML = nodeData[comp].code[currentMode];
+
+            // Update details list
+            const detailsList = document.getElementById('inspector-details');
+            detailsList.innerHTML = '';
+            nodeData[comp].info.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'details-item';
+                div.innerHTML = `
+                    <span class="details-label">${item.label}</span>
+                    <span class="details-val">${item.val}</span>
+                `;
+                detailsList.appendChild(div);
+            });
+        }
+
+        function log(message, type = 'info') {
+            const body = document.getElementById('console-body');
+            const div = document.createElement('div');
+            div.className = `log-line ${type}`;
+            
+            const time = new Date().toLocaleTimeString();
+            div.innerText = `[${time}] ${message}`;
+            
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function resetFlowchartStates() {
+            document.querySelectorAll('.node').forEach(el => {
+                el.classList.remove('success-state', 'error-state');
+            });
+            document.querySelectorAll('.flow-path').forEach(el => {
+                el.className.baseVal = 'flow-path';
+                el.setAttribute('marker-end', 'url(#arrow)');
+            });
+        }
+
+        function highlightNode(nodeId, state) {
+            const el = document.getElementById(`node-${nodeId}`);
+            if (!el) return;
+            el.classList.remove('success-state', 'error-state');
+            if (state) el.classList.add(`${state}-state`);
+        }
+
+        function highlightPath(pathId, state) {
+            const el = document.getElementById(`path-${pathId}`);
+            if (!el) return;
+            el.className.baseVal = `flow-path active-${state}`;
+            el.setAttribute('marker-end', `url(#arrow-${state === 'success' ? 'success' : 'danger'})`);
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function startSimulation() {
+            if (isSimulating) return;
+            isSimulating = true;
+            resetFlowchartStates();
+            
+            const authValid = document.getElementById('param-valid-auth').checked;
+            const rateLimitAllowed = document.getElementById('param-rate-limit').checked;
+            const cacheHit = document.getElementById('param-cache-hit').checked;
+            const geminiSuccess = document.getElementById('param-gemini-success').checked;
+
+            log(`>>> Starting simulation: Mode = ${currentMode.toUpperCase()}`, 'system');
+
+            // Step 1: Trigger Request
+            selectNode('trigger');
+            highlightNode('trigger', 'success');
+            if (currentMode === 'webhook') {
+                log('POST /api/v1/webhook/github request received. Content-Type: application/json', 'info');
+                log('Header [X-GitHub-Event]: pull_request', 'info');
+                log('Header [X-Hub-Signature-256]: sha256=9b448a3... (present)', 'info');
+            } else {
+                log('POST /api/v1/review request received from client.', 'info');
+                log('Header [X-API-Key]: rcb-33f92b... (present)', 'info');
+            }
+            highlightPath('trigger-auth', 'success');
+            await wait(1500);
+
+            // Step 2: Auth Verification
+            selectNode('auth');
+            if (currentMode === 'webhook') {
+                log('Verifying webhook signature using HmacSHA256 spec...', 'info');
+                await wait(1000);
+                if (!authValid) {
+                    highlightNode('auth', 'error');
+                    log('Verification failed: Webhook signature does not match secret!', 'error');
+                    log('Response sent: HTTP 401 Unauthorized', 'error');
+                    isSimulating = false;
+                    return;
+                }
+                highlightNode('auth', 'success');
+                log('Webhook signature verified successfully.', 'success');
+            } else {
+                log('Hashing API key with SHA-256 for secure repository check...', 'info');
+                await wait(1000);
+                if (!authValid) {
+                    highlightNode('auth', 'error');
+                    log('Authentication failed: API key hash not found in PostgreSQL Database.', 'error');
+                    log('Response sent: HTTP 401 Unauthorized', 'error');
+                    isSimulating = false;
+                    return;
+                }
+                highlightNode('auth', 'success');
+                log('API Key verified. Hashed query returned clientName: "test-client"', 'success');
+            }
+            highlightPath('auth-ratelimit', 'success');
+            await wait(1500);
+
+            // Step 3: Rate Limiter Check
+            selectNode('ratelimit');
+            log('Checking rate limit bounds in Redis template...', 'info');
+            await wait(1000);
+            if (!rateLimitAllowed) {
+                highlightNode('ratelimit', 'error');
+                log('Rate limit exceeded: Client sent more than 10 requests/min!', 'error');
+                log('Response sent: HTTP 429 Too Many Requests', 'error');
+                isSimulating = false;
+                return;
+            }
+            highlightNode('ratelimit', 'success');
+            log('Rate limit bounds OK. Remaining quota: 9/10 requests.', 'success');
+            highlightPath('ratelimit-cache', 'success');
+            await wait(1500);
+
+            // Step 4: Cache Lookup
+            selectNode('cache');
+            log('Building cache key with MD5(prUrl) + commitSha...', 'info');
+            await wait(1000);
+            if (cacheHit) {
+                highlightNode('cache', 'success');
+                log('Cache HIT in Redis! Review details found.', 'success');
+                highlightPath('cache-response', 'success');
+                await wait(1500);
+                
+                // Jump to Response
+                selectNode('response');
+                highlightNode('response', 'success');
+                if (currentMode === 'webhook') {
+                    log('Posting cached markdown review back to GitHub pull request #42...', 'info');
+                    await wait(800);
+                    log('Successfully posted review comment to issue API.', 'success');
+                } else {
+                    log('Returning cached JSON review payload to client.', 'success');
+                }
+                log('>>> Simulation complete: SUCCESS (Cache Hit)', 'system');
+                isSimulating = false;
+                return;
+            }
+            highlightNode('cache', 'success');
+            log('Cache MISS: Review not cached for commit. Proceeding to Gemini LLM.', 'info');
+            highlightPath('cache-llm', 'success');
+            await wait(1500);
+
+            // Step 5: Gemini LLM analysis
+            selectNode('llm');
+            log('Connecting to Google Gemini API (model: gemini-1.5-flash)...', 'info');
+            log('Sending prompt body along with raw file diff payloads...', 'info');
+            await wait(2000);
+            if (!geminiSuccess) {
+                highlightNode('llm', 'error');
+                log('Gemini model response failed or malformed JSON output returned!', 'error');
+                log('Response sent: HTTP 500 Internal Server Error', 'error');
+                isSimulating = false;
+                return;
+            }
+            highlightNode('llm', 'success');
+            log('Gemini analysis complete. Score: 88/100, Findings detected: 2', 'success');
+            highlightPath('llm-db', 'success');
+            await wait(1500);
+
+            // Step 6: Database Persistence
+            selectNode('db');
+            log('Starting transactional session. Inserting review and findings in PostgreSQL...', 'info');
+            await wait(1000);
+            highlightNode('db', 'success');
+            log('Entities saved: Review ID = ' + crypto.randomUUID().substring(0, 8) + ', 2 findings stored.', 'success');
+            highlightPath('db-response', 'success');
+            await wait(1500);
+
+            // Step 7: Response Output
+            selectNode('response');
+            highlightNode('response', 'success');
+            if (currentMode === 'webhook') {
+                log('Post comment asynchronously to GitHub Issues API /repos/test/repo/issues/42/comments...', 'info');
+                await wait(1000);
+                log('Successfully posted markdown review comment to PR #42.', 'success');
+            } else {
+                log('HTTP 200 OK sent with JSON review findings payload.', 'success');
+            }
+            log('>>> Simulation complete: SUCCESS (Fresh Review Created)', 'system');
+            isSimulating = false;
+        }
+
+        // Initialize display
+        selectNode('trigger');
+    </script>
+</body>
+</html>

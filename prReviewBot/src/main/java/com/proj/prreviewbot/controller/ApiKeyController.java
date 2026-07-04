@@ -1,8 +1,10 @@
 package com.proj.prreviewbot.controller;
 
+import com.proj.prreviewbot.dto.ApiKeyMetadata;
 import com.proj.prreviewbot.dto.ApiKeyRequest;
 import com.proj.prreviewbot.dto.ApiKeyResponse;
 import com.proj.prreviewbot.service.ApiKeyService;
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,5 +35,10 @@ public class ApiKeyController {
                 "message", "API key revoked successfully",
                 "id", id.toString()
         ));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ApiKeyMetadata>> listKeys() {
+        return ResponseEntity.ok(apiKeyService.listAllKeys());
     }
 }

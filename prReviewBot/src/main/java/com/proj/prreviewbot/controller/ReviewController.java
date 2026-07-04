@@ -60,6 +60,13 @@ public class ReviewController {
         // Step 5: Cache the result
         cacheService.cacheReview(request.getPrUrl(), prData.getHeadCommitSha(), response);
 
+        // Step 6: Post review summary as a comment/review back to GitHub PR
+        try {
+            gitHubService.postReview(request.getPrUrl(), response);
+        } catch (Exception e) {
+            log.warn("Failed to post review back to GitHub: {}", e.getMessage());
+        }
+
         return ResponseEntity.ok(response);
     }
 

@@ -45,6 +45,14 @@ public class ReviewCacheService {
     }
 
     private String buildCacheKey(String prUrl, String commitSha) {
-        return "review_cache:" + prUrl.hashCode() + ":" + commitSha;
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            byte[] hash = digest.digest(prUrl.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String urlHash = java.util.HexFormat.of().formatHex(hash);
+            return "review_cache:" + urlHash + ":" + commitSha;
+        } catch (Exception e) {
+            // Fallback to hashCode if MD5 fails for some reason
+            return "review_cache:" + prUrl.hashCode() + ":" + commitSha;
+        }
     }
 }

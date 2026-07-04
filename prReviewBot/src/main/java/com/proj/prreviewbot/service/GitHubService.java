@@ -119,4 +119,51 @@ public class GitHubService {
                     + e.getMessage(), e);
         }
     }
+
+    public void postReview(String prUrl, com.proj.prreviewbot.dto.ReviewResponse reviewResponse) {
+        Matcher matcher = PR_URL_PATTERN.matcher(prUrl);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid GitHub PR URL: " + prUrl);
+        }
+        String owner    = matcher.group(1);
+        String repo     = matcher.group(2);
+        int    prNumber = Integer.parseInt(matcher.group(3));
+
+        StringBuilder markdown = new StringBuilder();
+        markdown.append("### 🤖 AI Code Review Summary\n\n");
+        markdown.append("**Overall Score:** ").append(reviewResponse.getOverallScore()).append("/100\n\n");
+        markdown.append("> ").append(reviewResponse.getSummary()).append("\n\n");
+
+        if (reviewResponse.getFindings().isEmpty()) {
+            markdown.append("✨ No issues found! Clean code.");
+        } else {
+            markdown.append("#### 🔍 Findings & Suggestions:\n\n");
+            for (com.proj.prreviewbot.dto.ReviewResponse.Finding finding : reviewResponse.getFindings()) {
+                markdown.append(String.format("- **[%s]** `%s` (Line %d): *%s*\n",
+                        finding.getSeverity(), finding.getFile(), finding.getLine(), finding.getTitle()));
+                markdown.append("  - **Description:** ").append(finding.getDescription()).append("\n");
+                markdown.append("  - **Suggestion:** ").append(finding.getSuggestion()).append("\n\n");
+            }
+        }
+
+        try {
+            String payload = objectMapper.writeValueAsString(java.util.Map.of(
+                    "body", markdown.toString(),
+                    "event", "COMMENT"
+            ));
+
+            webClient.post()
+                    .uri("/repos/{owner}/{repo}/pulls/{number}/reviews", owner, repo, prNumber)
+                    .header("Authorization", "Bearer " + githubToken)
+                    .header("Accept", "application/vnd.github+json")
+                    .header("Content-Type", "application/json")
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (Exception e) {
+            System.err.println("Failed to post review comment back to GitHub: " + e.getMessage());
+        }
+    }
 }
+

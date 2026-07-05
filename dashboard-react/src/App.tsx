@@ -295,8 +295,8 @@ export default function App() {
               </div>
               <div className="glass-panel kpi-card">
                 <span className="kpi-label">Average Code Quality Score</span>
-                <span className="kpi-val" style={{color: parseFloat(avgScore) >= 8.0 ? 'var(--success)' : parseFloat(avgScore) >= 6.0 ? 'var(--warning)' : 'inherit'}}>
-                  {avgScore} <span style={{fontSize: '1rem', fontWeight: 400, color: 'var(--text-muted)'}}>/ 10</span>
+                <span className="kpi-val" style={{color: parseFloat(avgScore) >= 80.0 ? 'var(--success)' : parseFloat(avgScore) >= 60.0 ? 'var(--warning)' : 'inherit'}}>
+                  {avgScore} <span style={{fontSize: '1rem', fontWeight: 400, color: 'var(--text-muted)'}}>/ 100</span>
                 </span>
                 <span className="kpi-trend positive">Healthy</span>
               </div>
@@ -356,7 +356,7 @@ export default function App() {
                         <div 
                           style={{ 
                             width: '30px', 
-                            height: `${rev.overallScore * 12}px`, 
+                            height: `${rev.overallScore * 0.8}%`, 
                             background: 'linear-gradient(to top, var(--secondary), var(--primary))', 
                             borderRadius: '4px 4px 0 0',
                             position: 'relative'
@@ -404,8 +404,8 @@ export default function App() {
                             {rev.headCommitSha.substring(0, 8)}
                           </td>
                           <td>
-                            <span className={`badge ${rev.overallScore >= 8 ? 'badge-success' : rev.overallScore >= 6 ? 'badge-warning' : 'badge-danger'}`}>
-                              {rev.overallScore} / 10
+                            <span className={`badge ${rev.overallScore >= 80 ? 'badge-success' : rev.overallScore >= 60 ? 'badge-warning' : 'badge-danger'}`}>
+                              {rev.overallScore} / 100
                             </span>
                           </td>
                           <td>{rev.findings ? rev.findings.length : 0} alerts</td>
@@ -450,7 +450,7 @@ export default function App() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                       <span>PR #{rev.prUrl.split('/').pop()}</span>
-                      <span className={`badge ${rev.overallScore >= 8 ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.1rem 0.4rem', fontSize: '0.65rem' }}>{rev.overallScore}</span>
+                      <span className={`badge ${rev.overallScore >= 80 ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.1rem 0.4rem', fontSize: '0.65rem' }}>{rev.overallScore}</span>
                     </div>
                   </button>
                 ))}
@@ -474,7 +474,7 @@ export default function App() {
                     </div>
                     <div>
                       <span className="kpi-label" style={{ fontSize: '0.65rem' }}>Overall Score</span>
-                      <p style={{ fontSize: '1.1rem', fontWeight: 800 }}>{selectedReview.overallScore} / 10</p>
+                      <p style={{ fontSize: '1.1rem', fontWeight: 800 }}>{selectedReview.overallScore} / 100</p>
                     </div>
                     <div>
                       <span className="kpi-label" style={{ fontSize: '0.65rem' }}>Findings Detected</span>

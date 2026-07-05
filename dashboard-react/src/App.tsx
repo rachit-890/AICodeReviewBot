@@ -31,7 +31,11 @@ interface ApiKeyMetadata {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'security'>('overview');
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('rcb_api_key') || '');
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    localStorage.setItem('rcb_api_key', value);
+  };
   const [keysList, setKeysList] = useState<ApiKeyMetadata[]>([]);
   const [reviewsHistory, setReviewsHistory] = useState<ReviewDetail[]>([]);
   const [selectedReview, setSelectedReview] = useState<ReviewDetail | null>(null);
@@ -51,9 +55,12 @@ export default function App() {
 
   // Fetch API Keys List
   const fetchKeys = async () => {
+    if (!apiKey) return;
     setLoadingKeys(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/keys`);
+      const response = await fetch(`${BACKEND_URL}/keys`, {
+        headers: { 'X-API-Key': apiKey }
+      });
       if (response.ok) {
         const data = await response.json();
         setKeysList(data);
@@ -69,9 +76,12 @@ export default function App() {
 
   // Fetch Reviews History
   const fetchHistory = async () => {
+    if (!apiKey) return;
     setLoadingHistory(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/review/history`);
+      const response = await fetch(`${BACKEND_URL}/review/history`, {
+        headers: { 'X-API-Key': apiKey }
+      });
       if (response.ok) {
         const data = await response.json();
         setReviewsHistory(data);
@@ -90,9 +100,15 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchKeys();
-    fetchHistory();
-  }, []);
+    if (apiKey) {
+      fetchKeys();
+      fetchHistory();
+    } else {
+      setKeysList([]);
+      setReviewsHistory([]);
+      setSelectedReview(null);
+    }
+  }, [apiKey]);
 
   // Revoke API Key
   const handleRevokeKey = async (id: string) => {
@@ -100,6 +116,7 @@ export default function App() {
     try {
       const response = await fetch(`${BACKEND_URL}/keys/${id}`, {
         method: 'DELETE',
+        headers: { 'X-API-Key': apiKey }
       });
       if (response.ok) {
         fetchKeys();
@@ -162,7 +179,9 @@ export default function App() {
         // Set the active tab to reviews to show details
         setActiveTab('reviews');
         // Fetch review details to select it
-        const detailResp = await fetch(`${BACKEND_URL}/review/${data.id}`);
+        const detailResp = await fetch(`${BACKEND_URL}/review/${data.id}`, {
+          headers: { 'X-API-Key': keyToUse }
+        });
         if (detailResp.ok) {
           const detailData = await detailResp.json();
           setSelectedReview(detailData);
@@ -254,7 +273,7 @@ export default function App() {
                 className="form-input" 
                 placeholder="Enter client key..." 
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
                 style={{ width: '180px', padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
               />
             </div>

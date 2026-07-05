@@ -124,8 +124,8 @@ public class WebhookService {
 
         try {
             webClient.post()
-                    .uri("/repos/{repo}/issues/{number}/comments",
-                            repoFullName, prNumber)
+                    .uri("/repos/" + repoFullName + "/issues/{number}/comments",
+                            prNumber)
                     .header("Authorization", "Bearer " + githubToken)
                     .header("Accept", "application/vnd.github+json")
                     .bodyValue(Map.of("body", comment))

@@ -198,6 +198,33 @@ export default function App() {
     }
   };
 
+  // Delete Review
+  const handleDeleteReview = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this code review? This action is permanent.')) return;
+    try {
+      const response = await fetch(`${BACKEND_URL}/review/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-API-Key': apiKey }
+      });
+      if (response.ok) {
+        // Remove from local list
+        const updatedHistory = reviewsHistory.filter(rev => rev.id !== id);
+        setReviewsHistory(updatedHistory);
+        
+        // If the deleted review was selected, update selectedReview
+        if (selectedReview?.id === id) {
+          setSelectedReview(updatedHistory.length > 0 ? updatedHistory[0] : null);
+        }
+      } else {
+        alert('Failed to delete review');
+      }
+    } catch (err) {
+      console.error('Error deleting review:', err);
+      alert('Error connecting to backend to delete review');
+    }
+  };
+
   // Metrics Calculations
   const totalPRs = reviewsHistory.length;
   const avgScore = totalPRs > 0 ? (reviewsHistory.reduce((acc, curr) => acc + curr.overallScore, 0) / totalPRs).toFixed(1) : 'N/A';
@@ -345,31 +372,138 @@ export default function App() {
               {/* Review Volume Graph */}
               <section className="glass-panel">
                 <h3 style={{ marginBottom: '1rem', fontSize: '1rem', fontWeight: 700 }}>Telemetry Metrics (Code Quality Scores)</h3>
-                <div style={{ height: '180px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '1rem 0' }}>
+                <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0' }}>
                   {loadingHistory ? (
-                    <div style={{ color: 'var(--text-muted)', margin: 'auto', fontSize: '0.875rem' }}>Loading telemetry stats...</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading telemetry stats...</div>
                   ) : reviewsHistory.length === 0 ? (
-                    <div style={{ color: 'var(--text-muted)', margin: 'auto', fontSize: '0.875rem' }}>No reviews executed yet. Run a review to see telemetry chart.</div>
-                  ) : (
-                    reviewsHistory.map((rev) => (
-                      <div key={rev.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '0.5rem' }}>
-                        <div 
-                          style={{ 
-                            width: '30px', 
-                            height: `${rev.overallScore * 0.8}%`, 
-                            background: 'linear-gradient(to top, var(--secondary), var(--primary))', 
-                            borderRadius: '4px 4px 0 0',
-                            position: 'relative'
-                          }} 
-                        >
-                          <span style={{ position: 'absolute', top: '-20px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.75rem', fontWeight: 700 }}>{rev.overallScore}</span>
-                        </div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          PR #{rev.prUrl.split('/').pop()}
-                        </span>
-                      </div>
-                    ))
-                  )}
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No reviews executed yet. Run a review to see telemetry chart.</div>
+                  ) : (() => {
+                    const dataPoints = [...reviewsHistory].reverse();
+                    const width = 500;
+                    const height = 180;
+                    const paddingLeft = 35;
+                    const paddingRight = 15;
+                    const paddingTop = 20;
+                    const paddingBottom = 25;
+
+                    const plotWidth = width - paddingLeft - paddingRight;
+                    const plotHeight = height - paddingTop - paddingBottom;
+
+                    const getX = (index: number) => {
+                      if (dataPoints.length <= 1) return paddingLeft + plotWidth / 2;
+                      return paddingLeft + (index / (dataPoints.length - 1)) * plotWidth;
+                    };
+
+                    const getY = (score: number) => {
+                      return height - paddingBottom - (score / 100) * plotHeight;
+                    };
+
+                    // Generate line path
+                    const linePath = dataPoints.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(pt.overallScore)}`).join(' ');
+
+                    // Generate area path
+                    const areaPath = dataPoints.length > 0 
+                      ? `${linePath} L ${getX(dataPoints.length - 1)} ${height - paddingBottom} L ${getX(0)} ${height - paddingBottom} Z` 
+                      : '';
+
+                    const gridScores = [0, 25, 50, 75, 100];
+
+                    return (
+                      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="var(--secondary)" stopOpacity="0.0" />
+                          </linearGradient>
+                          <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="var(--primary)" />
+                            <stop offset="100%" stopColor="var(--secondary)" />
+                          </linearGradient>
+                        </defs>
+                        
+                        {/* Grid lines */}
+                        {gridScores.map(score => {
+                          const y = getY(score);
+                          return (
+                            <g key={score}>
+                              <line 
+                                x1={paddingLeft} 
+                                y1={y} 
+                                x2={width - paddingRight} 
+                                y2={y} 
+                                stroke="rgba(255, 255, 255, 0.05)" 
+                                strokeDasharray="3 3" 
+                              />
+                              <text 
+                                x={paddingLeft - 8} 
+                                y={y + 4} 
+                                fill="var(--text-muted)" 
+                                fontSize="9" 
+                                textAnchor="end"
+                                fontFamily="var(--font-mono)"
+                              >
+                                {score}%
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Area Path */}
+                        {areaPath && <path d={areaPath} fill="url(#chartGradient)" />}
+
+                        {/* Line Path */}
+                        {linePath && (
+                          <path 
+                            d={linePath} 
+                            fill="none" 
+                            stroke="url(#lineGradient)" 
+                            strokeWidth="2.5" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                          />
+                        )}
+
+                        {/* Points & Labels */}
+                        {dataPoints.map((pt, i) => {
+                          const cx = getX(i);
+                          const cy = getY(pt.overallScore);
+                          return (
+                            <g key={pt.id}>
+                              <circle 
+                                cx={cx} 
+                                cy={cy} 
+                                r="4" 
+                                fill="var(--primary)" 
+                                stroke="var(--bg-main)" 
+                                strokeWidth="1.5" 
+                              />
+                              <text 
+                                x={cx} 
+                                y={cy - 9} 
+                                fill="var(--text-primary)" 
+                                fontSize="9" 
+                                fontWeight="700" 
+                                textAnchor="middle"
+                                fontFamily="var(--font-mono)"
+                              >
+                                {pt.overallScore}
+                              </text>
+                              <text 
+                                x={cx} 
+                                y={height - 5} 
+                                fill="var(--text-secondary)" 
+                                fontSize="8" 
+                                textAnchor="middle"
+                                fontFamily="var(--font-mono)"
+                              >
+                                #{pt.prUrl.split('/').pop()}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    );
+                  })()}
                 </div>
               </section>
             </div>
@@ -413,16 +547,31 @@ export default function App() {
                             {new Date(rev.reviewedAt).toLocaleString()}
                           </td>
                           <td>
-                            <button 
-                              className="btn btn-secondary" 
-                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-                              onClick={() => {
-                                setSelectedReview(rev);
-                                setActiveTab('reviews');
-                              }}
-                            >
-                              Inspect Code
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <button 
+                                className="btn btn-secondary" 
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                                onClick={() => {
+                                  setSelectedReview(rev);
+                                  setActiveTab('reviews');
+                                }}
+                              >
+                                Inspect Code
+                              </button>
+                              <button 
+                                className="btn btn-danger" 
+                                style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                                onClick={(e) => handleDeleteReview(rev.id, e)}
+                                title="Delete Review"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -463,9 +612,18 @@ export default function App() {
                 <section className="glass-panel">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>PR Details & LLM Review Analysis</h3>
-                    <a href={selectedReview.prUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                      View on GitHub
-                    </a>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <a href={selectedReview.prUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                        View on GitHub
+                      </a>
+                      <button 
+                        className="btn btn-danger" 
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                        onClick={(e) => handleDeleteReview(selectedReview.id, e)}
+                      >
+                        Delete Review
+                      </button>
+                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
                     <div>

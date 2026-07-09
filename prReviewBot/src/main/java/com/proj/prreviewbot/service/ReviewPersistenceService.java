@@ -69,6 +69,14 @@ public class ReviewPersistenceService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteReview(UUID id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found with id: " + id));
+        reviewRepository.delete(review);
+        log.info("Deleted review {} and its findings from database", id);
+    }
+
     // Convert entity to DTO while session is still open
     private ReviewDetailResponse toDetailResponse(Review review) {
         List<ReviewDetailResponse.FindingDetail> findings = review.getFindings()

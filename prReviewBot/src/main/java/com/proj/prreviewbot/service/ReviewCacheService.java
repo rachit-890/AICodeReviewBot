@@ -44,6 +44,16 @@ public class ReviewCacheService {
         return null;
     }
 
+    public void evictCache(String prUrl, String commitSha) {
+        String key = buildCacheKey(prUrl, commitSha);
+        try {
+            redisTemplate.delete(key);
+            log.info("Evicted cached review for key: {}", key);
+        } catch (Exception e) {
+            log.warn("Failed to evict cached review: {}", e.getMessage());
+        }
+    }
+
     private String buildCacheKey(String prUrl, String commitSha) {
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");

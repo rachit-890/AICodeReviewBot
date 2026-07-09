@@ -1,35 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Obsidian Color Palette */
-  --bg-main: #060709;
-  --bg-surface: rgba(14, 16, 21, 0.75);
-  --bg-surface-elevated: rgba(22, 26, 33, 0.9);
-  --border-color: rgba(255, 255, 255, 0.07);
-  --border-glow: rgba(0, 240, 255, 0.15);
+  /* Organic Indigo Color Palette */
+  --bg-main: #0b0f19;
+  --bg-surface: rgba(17, 24, 39, 0.7);
+  --bg-surface-elevated: rgba(31, 41, 55, 0.95);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(99, 102, 241, 0.15);
   
-  --primary: #00f0ff;
-  --primary-glow: rgba(0, 240, 255, 0.3);
-  --secondary: #bd00ff;
-  --secondary-glow: rgba(189, 0, 255, 0.3);
+  --primary: #6366f1; /* Indigo */
+  --primary-glow: rgba(99, 102, 241, 0.35);
+  --secondary: #a855f7; /* Purple */
+  --secondary-glow: rgba(168, 85, 247, 0.3);
   
-  --text-primary: #f5f6f9;
-  --text-secondary: #949cae;
-  --text-muted: #626875;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
   /* Semantic Colors */
-  --success: #00ffaa;
-  --success-glow: rgba(0, 255, 170, 0.2);
-  --warning: #ffb700;
-  --warning-glow: rgba(255, 183, 0, 0.2);
-  --danger: #ff0055;
-  --danger-glow: rgba(255, 0, 85, 0.2);
+  --success: #10b981; /* Emerald */
+  --success-glow: rgba(16, 185, 129, 0.2);
+  --warning: #f59e0b; /* Amber */
+  --warning-glow: rgba(245, 158, 11, 0.2);
+  --danger: #f43f5e; /* Rose */
+  --danger-glow: rgba(244, 63, 94, 0.25);
   
   --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-neon: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-neon: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
   --radius-lg: 12px;
   --radius-md: 8px;
 }
@@ -47,8 +47,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(189, 0, 255, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.04) 0%, transparent 40%);
+    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -124,7 +124,7 @@ body {
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(0, 240, 255, 0.1) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
   border-left: 3px solid var(--primary);
 }
 
@@ -171,8 +171,8 @@ body {
 }
 
 .glass-panel:hover {
-  border-color: rgba(0, 240, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 240, 255, 0.03);
+  border-color: var(--border-glow);
+  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.05);
 }
 
 /* KPI Summary Cards Grid */
@@ -218,10 +218,9 @@ body {
   color: var(--danger);
 }
 
-/* Buttons */
 .btn {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: #000;
+  color: #fff;
   border: none;
   font-weight: 700;
   font-family: var(--font-sans);
@@ -236,7 +235,7 @@ body {
 
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 16px 0 rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 16px 0 var(--primary-glow);
 }
 
 .btn-secondary {
@@ -251,14 +250,14 @@ body {
 }
 
 .btn-danger {
-  background: rgba(255, 0, 85, 0.15);
+  background: var(--danger-glow);
   color: var(--danger);
   box-shadow: inset 0 0 0 1px var(--danger);
 }
 
 .btn-danger:hover {
   background: var(--danger);
-  color: #000;
+  color: #fff;
   box-shadow: 0 0 16px var(--danger-glow);
 }
 
@@ -402,7 +401,7 @@ body {
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 240, 255, 0.1);
+  box-shadow: 0 10px 40px var(--primary-glow);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

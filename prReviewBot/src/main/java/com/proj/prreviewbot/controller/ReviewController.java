@@ -79,6 +79,19 @@ public class ReviewController {
         return ResponseEntity.ok(persistenceService.getAllReviews());
     }
 
+    @DeleteMapping("/review/{id}")
+    public ResponseEntity<Void> deleteReview(@PathVariable UUID id) {
+        log.info("Delete requested for review: {}", id);
+        try {
+            ReviewDetailResponse detail = persistenceService.getReviewById(id);
+            cacheService.evictCache(detail.getPrUrl(), detail.getHeadCommitSha());
+        } catch (Exception e) {
+            log.warn("Could not find review to evict cache for id {}: {}", id, e.getMessage());
+        }
+        persistenceService.deleteReview(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/health-check")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("AI Code Reviewer is running");

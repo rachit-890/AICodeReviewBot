@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Code, Shield, Terminal, LayoutDashboard, LogOut, Plus, Settings, 
-  HelpCircle, Activity, FileCode, Trash2, ExternalLink, Lock, Check, 
+  Code, Shield, Terminal, LayoutDashboard, LogOut, Plus, 
+  Activity, FileCode, Trash2, ExternalLink, Lock, Check, 
   Eye, EyeOff, Search, AlertTriangle, Sparkles, Globe, 
   RefreshCw, Play, ArrowRight, LockKeyhole, Users, CheckCircle2, GitPullRequest
 } from 'lucide-react';
@@ -240,7 +240,7 @@ function TerminalDemo() {
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'console'>('landing');
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'security' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'security'>('overview');
   
   // Auth & API states
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('rcb_api_key') || '');
@@ -273,14 +273,7 @@ export default function App() {
   const [reviewPrUrl, setReviewPrUrl] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Stream logs
-  const [logs, setLogs] = useState<string[]>([
-    '[2026-07-09 20:01:10] INFO  com.proj.prreviewbot.config.ApiKeyAuthFilter - Sentinel engine filters initialized',
-    '[2026-07-09 20:02:15] INFO  com.proj.prreviewbot.PrReviewBotApplication - Tomcat container ready on port 8080',
-    '[2026-07-09 20:04:30] INFO  c.p.p.service.ReviewPersistenceService - Database connection Pool OK',
-    '[2026-07-09 20:05:12] INFO  c.p.p.service.ReviewCacheService - Redis client initialized at redis:6379',
-    '[2026-07-09 20:10:45] INFO  c.p.p.controller.ReviewController - Server health telemetry checked: 100% OK'
-  ]);
+
 
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
@@ -339,25 +332,7 @@ export default function App() {
     }
   }, [apiKey]);
 
-  // Periodic diagnostics stream
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const actions = [
-        'API Key verification: PASSED for client github-webhook-prod',
-        'Rate limit check: client github-webhook-prod (1/10 r/m)',
-        'Database health-check: ok',
-        'Redis connection pool check: 10 active connections',
-        'Evicted cache check: no staled entries',
-        'System telemetry update dispatched',
-        'Webhook signature validation: success',
-        'Scheduled memory optimization complete'
-      ];
-      const randomAction = actions[Math.floor(Math.random() * actions.length)];
-      const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      setLogs(prev => [...prev.slice(-49), `[${time}] INFO  c.p.p.service.Diagnostics - ${randomAction}`]);
-    }, 12000);
-    return () => clearInterval(interval);
-  }, []);
+
 
   const handleRevokeKey = async (id: string) => {
     if (!confirm('Revoke this credentials token permanently?')) return;
@@ -626,9 +601,9 @@ export default function App() {
                 <p className="text-on-surface-variant leading-relaxed text-sm">
                   {finding.description}
                 </p>
-                <div className="flex gap-4 pt-2 text-xs">
-                  <button className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors">Apply Refactor</button>
-                  <button className="text-on-surface-variant hover:text-on-surface transition-colors">Discuss Response</button>
+                <div className="flex items-center gap-2 pt-2 text-xs text-on-surface-variant font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                  AI Security Recommendation Verified
                 </div>
               </div>
             </div>
@@ -998,13 +973,6 @@ export default function App() {
                 <span className="text-sm">Security & Keys</span>
               </button>
 
-              <button 
-                onClick={() => setActiveTab('logs')}
-                className={`w-full flex items-center px-6 py-3.5 space-x-3 border-l-4 transition-all duration-200 text-left ${activeTab === 'logs' ? 'text-indigo-400 font-bold border-indigo-500 bg-white/[0.02] shadow-[0_0_15px_rgba(99,102,241,0.08)]' : 'border-transparent text-on-surface-variant hover:bg-white/[0.01] hover:text-white'}`}
-              >
-                <Terminal className="w-4 h-4" />
-                <span className="text-sm">System Logs</span>
-              </button>
             </nav>
 
             {/* Sidebar actions footer */}
@@ -1016,22 +984,11 @@ export default function App() {
                   setReviewPrUrl('');
                   setShowTriggerModal(true);
                 }}
-                className="w-full mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(99,102,241,0.25)] transition-transform text-xs"
+                className="w-full mb-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(99,102,241,0.25)] transition-transform text-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 New Analysis
               </button>
-
-              <div className="space-y-1">
-                <div className="flex items-center py-2 px-2 space-x-3 text-on-surface-variant hover:text-white transition-colors cursor-pointer rounded hover:bg-white/[0.02]">
-                  <Settings className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Settings</span>
-                </div>
-                <div className="flex items-center py-2 px-2 space-x-3 text-on-surface-variant hover:text-white transition-colors cursor-pointer rounded hover:bg-white/[0.02]">
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Support</span>
-                </div>
-              </div>
 
               {/* Authenticated user card details */}
               <div className="mt-6 flex items-center gap-3 border-t border-white/[0.03] pt-4">
@@ -1063,7 +1020,6 @@ export default function App() {
                   {activeTab === 'overview' && 'Dashboard Overview'}
                   {activeTab === 'reviews' && 'Pull Request Reviews'}
                   {activeTab === 'security' && 'Credentials & Key Manager'}
-                  {activeTab === 'logs' && 'System Telemetries'}
                 </h3>
               </div>
 
@@ -1449,7 +1405,7 @@ export default function App() {
                                   <Users className="w-5 h-5" />
                                 </div>
                                 <div>
-                                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Auditor System</p>
+                                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Repository</p>
                                   <p className="font-bold text-white text-sm font-mono mt-0.5">
                                     {selectedReview.prUrl.replace('https://github.com/', '').split('/pull/')[0]}
                                   </p>
@@ -1462,7 +1418,7 @@ export default function App() {
                                   <p className="font-bold text-indigo-400 mt-0.5">#{selectedReview.prUrl.split('/').pop()}</p>
                                 </div>
                                 <div>
-                                  <p className="text-[9px] text-on-surface-variant uppercase font-bold">Target Target</p>
+                                  <p className="text-[9px] text-on-surface-variant uppercase font-bold">Target Branch</p>
                                   <p className="font-bold text-white mt-0.5">main</p>
                                 </div>
                                 <div>
@@ -1736,31 +1692,9 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Right side Redis monitoring details */}
+                      {/* Right side webhook and configuration details */}
                       <div className="w-full lg:w-1/3 flex flex-col gap-8">
                         
-                        {/* Redis cache memory meter */}
-                        <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-xl relative overflow-hidden flex flex-col items-center">
-                          <div className="flex justify-between items-start w-full mb-6">
-                            <div>
-                              <h4 className="font-bold text-white text-sm font-sans">Redis Throttle Cache</h4>
-                              <p className="text-[9px] text-on-surface-variant font-mono mt-0.5">HEALTHY OPERATION</p>
-                            </div>
-                            <Activity className="w-5 h-5 text-indigo-400" />
-                          </div>
-
-                          <div className="relative w-32 h-32 my-4">
-                            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                              <circle cx="50" cy="50" fill="none" r="40" stroke="rgba(255,255,255,0.03)" strokeWidth="6"></circle>
-                              <circle cx="50" cy="50" fill="none" r="40" stroke="#06b6d4" strokeDasharray="251.2" strokeDashoffset="216" strokeLinecap="round" strokeWidth="6" style={{ filter: 'drop-shadow(0 0 3px #06b6d4)' }}></circle>
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
-                              <span className="text-xl font-bold text-white">14%</span>
-                              <span className="text-[8px] text-slate-500 uppercase font-bold tracking-wider mt-0.5">Usage limit</span>
-                            </div>
-                          </div>
-                        </div>
-
                         {/* Webhook HMAC SHA-256 signature secret */}
                         <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-xl space-y-6">
                           <div>
@@ -1782,70 +1716,22 @@ export default function App() {
                               {webhookSecretVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+                        </div>
 
-                          <div>
-                            <span className="text-[9px] text-on-surface-variant uppercase tracking-wider font-mono font-bold block mb-4">Request Integrity (Last 24h)</span>
-                            <div className="flex items-end justify-between h-20 gap-1.5">
-                              {[14, 18, 22, 16, 20, 12, 24].map((h, i) => (
-                                <div key={i} className="flex-1 flex flex-col gap-0.5 justify-end">
-                                  <div 
-                                    className={`w-full bg-indigo-500/40 rounded-t-sm ${i === 6 ? 'bg-indigo-500 shadow-[0_0_8px_#6366f1]' : ''}`} 
-                                    style={{ height: `${h * 2.5}px` }}
-                                  ></div>
-                                  <div className="w-full bg-rose-500/20 rounded-b-sm" style={{ height: i % 3 === 0 ? '6px' : '2px' }}></div>
-                                </div>
-                              ))}
-                            </div>
+                        {/* Webhook Integration details */}
+                        <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-md space-y-4">
+                          <h4 className="font-bold text-white text-xs uppercase tracking-wider font-mono">Webhook Integration</h4>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">
+                            Configure your repository webhook settings to dispatch `pull_request` events to:
+                          </p>
+                          <div className="bg-slate-950 p-3 rounded-lg border border-white/[0.05] font-mono text-[10px] text-indigo-400 select-all truncate">
+                            {BACKEND_URL.replace('/api/v1', '/api/v1/webhook')}
                           </div>
+                          <p className="text-[10px] text-slate-500 leading-normal">
+                            All payload deliveries are authenticated via HMAC hex signatures calculated using the secret key above.
+                          </p>
                         </div>
 
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 4: SYSTEM DIAGNOSTICS LOGS */}
-                  {activeTab === 'logs' && (
-                    <div className="glass-card rounded-2xl overflow-hidden border border-white/[0.05] flex flex-col h-[calc(100vh-14rem)] shadow-2xl bg-slate-950/20">
-                      <div className="p-5 border-b border-white/[0.05] flex justify-between items-center bg-white/[0.01]">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 glow-pulse"></span>
-                          <div>
-                            <h4 className="font-bold text-white text-base font-sans">Diagnostics Engine Stream</h4>
-                            <p className="text-[9px] text-on-surface-variant font-mono">Live diagnostics logs from SentinAI engine</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
-                              setLogs(prev => [...prev, `[${time}] INFO  c.p.p.service.Diagnostics - Client request manually dispatched`]);
-                            }}
-                            className="px-3.5 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-white rounded-lg text-xs font-semibold transition-colors"
-                          >
-                            Trigger Diagnostic
-                          </button>
-                          <button 
-                            onClick={() => setLogs([])}
-                            className="px-3.5 py-1.5 border border-rose-500/20 hover:bg-rose-500/10 text-rose-400 rounded-lg text-xs font-semibold transition-colors"
-                          >
-                            Clear Stream
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 p-6 font-mono text-xs text-slate-300 overflow-y-auto custom-scrollbar select-text bg-[#030611]">
-                        <div className="space-y-1.5">
-                          {logs.map((line, idx) => {
-                            const isErr = line.includes('ERROR') || line.includes('failed');
-                            return (
-                              <div key={idx} className={isErr ? 'text-rose-400 font-bold' : ''}>
-                                {line}
-                              </div>
-                            );
-                          })}
-                          <div className="text-indigo-400/40 animate-pulse mt-4">_ LOG LISTENER CONNECTED. INGESTION ACTIVE...</div>
-                        </div>
                       </div>
                     </div>
                   )}

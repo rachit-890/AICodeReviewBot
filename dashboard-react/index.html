@@ -4,102 +4,44 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SentinAI | AI Code Review Dashboard</title>
-    <meta name="description" content="Production-grade monitoring console for AI Code Review Bot. Track pull request scores, security alerts, and client credential metadata in real-time." />
+    <title>SentinAI | Premium AI Code Review Agent</title>
+    <meta name="description" content="SaaS-grade AI security agent auditing codebases, pull requests, and client credential metadata in real-time." />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300..800&family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
           darkMode: "class",
           theme: {
             extend: {
-              "colors": {
-                      "on-tertiary-container": "#605f62",
-                      "surface-bright": "#3a393a",
-                      "surface-container": "#201f20",
-                      "primary-fixed": "#74f5ff",
-                      "primary-container": "#00f2ff",
-                      "secondary-fixed": "#f8d8ff",
-                      "error": "#ffb4ab",
-                      "primary-fixed-dim": "#00dbe7",
-                      "on-background": "#e5e2e3",
-                      "tertiary-fixed": "#e5e1e4",
-                      "error-container": "#93000a",
-                      "on-secondary-container": "#480064",
-                      "on-secondary": "#520071",
-                      "secondary": "#ebb2ff",
-                      "on-primary-fixed": "#002022",
-                      "surface-variant": "#353436",
-                      "tertiary": "#faf6f9",
-                      "surface-container-high": "#2a2a2b",
-                      "surface": "#131314",
-                      "on-secondary-fixed-variant": "#74009f",
-                      "on-primary": "#00363a",
-                      "background": "#131314",
-                      "on-tertiary-fixed-variant": "#474649",
-                      "surface-dim": "#131314",
-                      "on-secondary-fixed": "#320047",
-                      "tertiary-container": "#dddadd",
-                      "inverse-primary": "#00696f",
-                      "on-error": "#690005",
-                      "on-error-container": "#ffdad6",
-                      "surface-tint": "#00dbe7",
-                      "outline": "#849495",
-                      "on-surface": "#e5e2e3",
-                      "primary": "#e1fdff",
-                      "surface-container-highest": "#353436",
-                      "outline-variant": "#3a494b",
-                      "secondary-container": "#ce5dff",
-                      "on-surface-variant": "#b9cacb",
-                      "on-primary-container": "#006a71",
-                      "on-primary-fixed-variant": "#004f54",
-                      "surface-container-lowest": "#0e0e0f",
-                      "tertiary-fixed-dim": "#c8c6c8",
-                      "on-tertiary": "#303032",
-                      "secondary-fixed-dim": "#ebb2ff",
-                      "inverse-surface": "#e5e2e3",
-                      "surface-container-low": "#1c1b1c",
-                      "inverse-on-surface": "#313031",
-                      "on-tertiary-fixed": "#1b1b1d"
+              colors: {
+                background: "#050816",
+                surface: "#0b0f19",
+                "surface-container": "#111827",
+                "surface-container-low": "#0d1321",
+                "surface-container-high": "#1f2937",
+                "surface-container-highest": "#374151",
+                primary: "#6366f1", // Indigo
+                secondary: "#a855f7", // Purple
+                accent: "#06b6d4", // Cyan
+                electric: "#2563eb", // Electric blue
+                emerald: "#10b981", // Emerald green
+                pink: "#ec4899", // Pink accent
+                error: "#f43f5e",
+                "on-surface": "#f3f4f6",
+                "on-surface-variant": "#9ca3af",
+                outline: "#374151",
+                "outline-variant": "#4b5563"
               },
-              "borderRadius": {
-                      "DEFAULT": "0.125rem",
-                      "lg": "0.25rem",
-                      "xl": "0.5rem",
-                      "full": "0.75rem"
-              },
-              "spacing": {
-                      "stack-gap": "12px",
-                      "gutter": "20px",
-                      "container-padding": "24px",
-                      "base": "8px",
-                      "sidebar-width": "280px"
-              },
-              "fontFamily": {
-                      "code-md": ["JetBrains Mono"],
-                      "headline-lg": ["Geist"],
-                      "body-md": ["Geist"],
-                      "headline-md": ["Geist"],
-                      "body-lg": ["Geist"],
-                      "display-lg": ["Geist"],
-                      "label-sm": ["JetBrains Mono"]
-              },
-              "fontSize": {
-                      "code-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+              fontFamily: {
+                sans: ["Geist", "Plus Jakarta Sans", "sans-serif"],
+                mono: ["JetBrains Mono", "monospace"]
               }
-            },
-          },
+            }
+          }
         }
     </script>
   </head>
-  <body class="bg-background text-on-surface">
+  <body class="bg-background text-on-surface antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

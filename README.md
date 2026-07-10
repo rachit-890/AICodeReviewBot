@@ -21,18 +21,6 @@
 ## 🎨 Project Preview
 
 <p align="center">
-  <img src="https://images.unsplash.com/photo-1618401471353-b98aedd07871?auto=format&fit=crop&w=1200&h=400&q=80" alt="SentinAI Hero Banner" style="border-radius: 8px; max-width: 100%;" />
-</p>
-
-<p align="center">
-  <strong>💻 SentinAI Administrator Admin Console Dashboard</strong>
-</p>
-
-<p align="center">
-  <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1000&h=500&q=80" alt="SentinAI Admin Console Preview" style="border-radius: 8px; max-width: 100%;" />
-</p>
-
-<p align="center">
   <a href="http://localhost:5173"><img src="https://img.shields.io/badge/🚀%20Live%20Demo-Launch%20App-6366f1?style=for-the-badge" alt="Live Demo" /></a>
   <a href="prReviewBot/HELP.md"><img src="https://img.shields.io/badge/📚%20Documentation-Read%20Guides-purple?style=for-the-badge" alt="Documentation" /></a>
 </p>
@@ -67,8 +55,6 @@
 - [👤 Author Section](#-author-section)
 - [💖 Support Section](#-support-section)
 - [🙏 Acknowledgements](#-acknowledgements)
-- [📊 Star History](#-star-history)
-- [📈 Visitor Counter](#-visitor-counter)
 
 ---
 
@@ -367,21 +353,7 @@ erDiagram
 
 ## 📸 Screenshots
 
-<details>
-<summary>📸 View SentinAI Console Panel (Console view)</summary>
-
-*The React dashboard renders a unified line diff, security classifications, and health statistics dynamically:*
-![Console View](https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=1000&h=500&q=80)
-
-</details>
-
-<details>
-<summary>📸 View CLI Simulation Terminal</summary>
-
-*Running the ANSI flowchart interactive menu:*
-![CLI Terminal Flowchart](https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=1000&h=500&q=80)
-
-</details>
+*Screenshots of the SentinAI Console Panel and CLI Simulation Terminal will be added here.*
 
 ---
 
@@ -460,9 +432,9 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 ## 👤 Author Section
 
 - **GitHub:** [@rachit-890](https://github.com/rachit-890)
-- **LinkedIn:** [Rachit](https://linkedin.com/in/rachit)
-- **Portfolio:** [rachit.dev](https://rachit.dev)
-- **Email:** [rachit@example.com](mailto:rachit@example.com)
+- **LinkedIn:** [Rachit Kushwaha](https://www.linkedin.com/in/rachit-kushwaha-8b8714297/)
+- **Portfolio:** [Rachit's Portfolio](https://my-portfolio-gamma-five-86.vercel.app/)
+- **Email:** [rachitkushwaha890@gmail.com](mailto:rachitkushwaha890@gmail.com)
 
 ---
 
@@ -479,62 +451,6 @@ If this project helps save API costs or improves your code security, please cons
 
 ---
 
-## 📊 Star History
-
-<p align="center">
-  <a href="https://star-history.com/#rachit-890/AICodeReviewBot&Date">
-    <img src="https://api.star-history.com/svg?repos=rachit-890/AICodeReviewBot&type=Date" alt="Star History Chart" style="max-width: 100%;" />
-  </a>
-</p>
-
----
-
-## 📈 Visitor Counter
-
-<p align="center">
-  <img src="https://komarev.com/ghpvc/?username=rachit-890&color=6366f1&style=for-the-badge&label=PROFILE+VIEWS" alt="Visitor Counter" />
-</p>
-
----
-
 <p align="center">
   Made with ❤️ by <a href="https://github.com/rachit-890">rachit-890</a>
 </p>
-
----
-
-## 💡 Maintainer Recommendations & Insights
-
-### 1. Suggestions to Improve the Project
-- **Enable GitHub Check Runs API:** Instead of posting general pull request issue comments, leverage the GitHub Check Runs API to post review annotations directly onto the specific files and line numbers. This allows developers to see suggestions inline with the code and even click a "Commit Suggestion" button.
-- **Token Bucket Rate Limiter Refactoring:** Upgrade the current Redis rate limiter from simple increment-and-expire logic to a true Token Bucket or Leaky Bucket algorithm using Redis Lua scripts. This prevents traffic bursts at window boundaries.
-- **Flyway Version Locking:** In `application.properties`, configure Flyway clean-disable for production: `spring.flyway.clean-disabled=true` to prevent accidental database drop triggers in production environments.
-- **Connection Pool Tuning:** Configure HikariCP connection pooling configurations explicitly in production properties (`spring.datasource.hikari.maximum-pool-size=20`, `spring.datasource.hikari.idle-timeout=30000`, etc.) to optimize concurrent webhook processing.
-
-### 2. Suggestions to Improve the README
-- **Include Video Tutorial/Demo:** Embed an interactive `.mp4` or `.webp` video walk-through demonstrating a pull request analysis in action.
-- **Add Swagger/OpenAPI Spec Integration:** Add a link to a live Swagger UI dashboard (`/swagger-ui.html`) or embed the raw OpenAPI yaml spec to allow developers to interact with the API key generation endpoints easily.
-
-### 3. Missing Documentation
-- **Webhook Signature Configuration Guide:** Document exactly how to configure the Webhook Secret in GitHub settings (e.g. setting Content Type to `application/json` and matching the secret key).
-- **LangChain4j Performance Customization:** Provide documentation on customizing the model settings (like temperature, topP, maxOutputTokens) via Spring environment keys or custom Bean configuration.
-
-### 4. Missing Badges
-- **Code Coverage Badge:** Add a Codecov or Jacoco badge to display test coverage percentages (currently not integrated).
-- **Docker Image Size Badge:** Add a badge showing the size of the production Docker image to track build optimizations.
-
-### 5. Missing Screenshots
-- **Postgres Database Tables Structure:** Screenshots showing tables output from a DB client tool (e.g., pgAdmin, DBeaver) for the `reviews`, `findings`, and `api_keys` tables.
-- **Vulnerable Code vs Suggestion Visual UI:** Visual side-by-side snapshot of the unified diff card in the React console dashboard interface.
-
-### 6. Missing Diagrams
-- **Sequence Diagram for Webhook Processing:** A detailed UML sequence diagram tracking steps between GitHub webhook hooks, WebhookController, WebhookService, GitHubService, LLMService, and database persistence.
-- **Docker Container Networking Diagram:** Networking diagram detailing the ports mapping, network bridge configurations, and volume directories between containers.
-
-### 7. SEO Improvements for GitHub
-- **Add GitHub Topics:** Tag the repository with keywords: `spring-boot`, `langchain4j`, `gemini-api`, `ai-code-review`, `automated-code-review`, `react-dashboard`, `redis-rate-limiter`, `github-webhook`, `security-auditor`.
-- **Enrich Repository Description:** Set description to: "An autonomous, zero-trust AI code reviewer powered by Spring Boot, Google Gemini, Redis, and React. Integrates with GitHub Webhooks to audit code changes and security exposures on every pull request."
-
-### 8. How to Increase GitHub Stars Using the README
-- **Interactive Stargazers Reward Section:** Highlight a section inviting contributors to starring the repository, suggesting that reaching milestones (e.g., 50 stars, 100 stars) will unlock specific roadmap items (like GitLab/Bitbucket integration).
-- **Star Trigger Action:** Add a friendly reminder at the bottom of every posted GitHub PR review comment: *"If you found this AI review helpful, please star the [AICodeReviewBot repository](https://github.com/rachit-890/AICodeReviewBot)!"* This translates direct developer feedback into project visibility.

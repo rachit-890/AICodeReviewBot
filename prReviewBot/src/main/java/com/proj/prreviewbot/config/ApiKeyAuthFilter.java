@@ -44,7 +44,9 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         if (path.startsWith("/actuator") ||
                 path.equals("/api/v1/health-check") ||
                 path.equals("/api/v1/keys/generate") ||
-                path.startsWith("/api/v1/webhook")) {
+                path.startsWith("/api/v1/webhook") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui")) {
             filterChain.doFilter(request, response);
             return;
         }

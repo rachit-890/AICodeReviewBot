@@ -75,6 +75,11 @@
             <version>1.15.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-pgvector</artifactId>
+            <version>0.35.0</version>
+        </dependency>
 
         <!-- Load .env file in local dev -->
         <dependency>

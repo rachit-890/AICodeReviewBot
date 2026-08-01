@@ -47,11 +47,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: rachit123
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+  agent-service:
+    build:
+      context: ../agent-service
+      dockerfile: Dockerfile
+    container_name: prreviewbot-agent-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
 
 volumes:
   postgres_data:

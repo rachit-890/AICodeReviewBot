@@ -4,7 +4,8 @@ import {
   Code, Shield, Terminal, LayoutDashboard, LogOut, Plus, 
   Activity, FileCode, Trash2, ExternalLink, Lock, Check, 
   Eye, EyeOff, Search, AlertTriangle, Sparkles, Globe, 
-  RefreshCw, Play, ArrowRight, LockKeyhole, Users, CheckCircle2, GitPullRequest
+  RefreshCw, Play, ArrowRight, LockKeyhole, Users, CheckCircle2, GitPullRequest,
+  MessageSquare, BookOpen, Send, Database, FileText
 } from 'lucide-react';
 
 // Interfaces mapping backend models
@@ -240,7 +241,7 @@ function TerminalDemo() {
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'console'>('landing');
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'security'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'security' | 'rag' | 'docs'>('overview');
   
   // Auth & API states
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('rcb_api_key') || '');
@@ -273,9 +274,129 @@ export default function App() {
   const [reviewPrUrl, setReviewPrUrl] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  // RAG Chat & Indexing State
+  const [ragRepo, setRagRepo] = useState('rachit-890/AICodeReviewBot');
+  const [indexing, setIndexing] = useState(false);
+  const [indexStatus, setIndexStatus] = useState<string | null>(null);
+  const [chatQuery, setChatQuery] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; sources?: string[] }>>([
+    { sender: 'bot', text: 'Hello! I am your SentinAI RAG Code Assistant. Ask me anything about your indexed codebase!' }
+  ]);
+
+  // Doc Studio State
+  const [codeSnippet, setCodeSnippet] = useState('public boolean validateKey(String key) {\n  return key != null && key.startsWith("rcb_");\n}');
+  const [codeLang, setCodeLang] = useState('java');
+  const [explaining, setExplaining] = useState(false);
+  const [explanationResult, setExplanationResult] = useState<string | null>(null);
+  const [docFormat, setDocFormat] = useState('README');
+  const [generatingDoc, setGeneratingDoc] = useState(false);
+  const [docResult, setDocResult] = useState<string | null>(null);
+
 
 
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+
+  const handleIndexRepo = async () => {
+    if (!ragRepo.trim()) return;
+    setIndexing(true);
+    setIndexStatus(null);
+    try {
+      const response = await fetch(`${BACKEND_URL}/rag/index`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ repository: ragRepo, repoPath: '.', sync: true })
+      });
+      if (response.ok) {
+        setIndexStatus(`Repository ${ragRepo} indexed successfully!`);
+      } else {
+        setIndexStatus('Indexing failed. Verify repo path and API key.');
+      }
+    } catch (err) {
+      setIndexStatus('Network error during indexing.');
+    } finally {
+      setIndexing(false);
+    }
+  };
+
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatQuery.trim() || chatLoading) return;
+    const userMsg = chatQuery;
+    setChatQuery('');
+    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
+    setChatLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ repository: ragRepo, query: userMsg })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages(prev => [...prev, { sender: 'bot', text: data.answer, sources: data.sources }]);
+      } else {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: 'Error retrieving answer. Ensure repository is indexed first.' }]);
+      }
+    } catch (err) {
+      setChatMessages(prev => [...prev, { sender: 'bot', text: 'Network connection failed.' }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleExplainCode = async () => {
+    if (!codeSnippet.trim()) return;
+    setExplaining(true);
+    setExplanationResult(null);
+    try {
+      const response = await fetch(`${BACKEND_URL}/doc/explain`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ codeSnippet, language: codeLang })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setExplanationResult(data.explanation);
+      }
+    } catch (err) {
+      setExplanationResult('Failed to explain code snippet.');
+    } finally {
+      setExplaining(false);
+    }
+  };
+
+  const handleGenerateDoc = async () => {
+    setGeneratingDoc(true);
+    setDocResult(null);
+    try {
+      const response = await fetch(`${BACKEND_URL}/doc/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ repository: ragRepo, docFormat })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDocResult(data.documentation);
+      }
+    } catch (err) {
+      setDocResult('Failed to generate documentation.');
+    } finally {
+      setGeneratingDoc(false);
+    }
+  };
 
   const handleApiKeyChange = (value: string) => {
     setApiKey(value);
@@ -973,6 +1094,22 @@ export default function App() {
                 <span className="text-sm">Security & Keys</span>
               </button>
 
+              <button 
+                onClick={() => setActiveTab('rag')}
+                className={`w-full flex items-center px-6 py-3.5 space-x-3 border-l-4 transition-all duration-200 text-left ${activeTab === 'rag' ? 'text-indigo-400 font-bold border-indigo-500 bg-white/[0.02] shadow-[0_0_15px_rgba(99,102,241,0.08)]' : 'border-transparent text-on-surface-variant hover:bg-white/[0.01] hover:text-white'}`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="text-sm">Repo RAG Studio</span>
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('docs')}
+                className={`w-full flex items-center px-6 py-3.5 space-x-3 border-l-4 transition-all duration-200 text-left ${activeTab === 'docs' ? 'text-indigo-400 font-bold border-indigo-500 bg-white/[0.02] shadow-[0_0_15px_rgba(99,102,241,0.08)]' : 'border-transparent text-on-surface-variant hover:bg-white/[0.01] hover:text-white'}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="text-sm">Doc & Explanation</span>
+              </button>
+
             </nav>
 
             {/* Sidebar actions footer */}
@@ -1020,6 +1157,8 @@ export default function App() {
                   {activeTab === 'overview' && 'Dashboard Overview'}
                   {activeTab === 'reviews' && 'Pull Request Reviews'}
                   {activeTab === 'security' && 'Credentials & Key Manager'}
+                  {activeTab === 'rag' && 'Repository RAG Code Assistant'}
+                  {activeTab === 'docs' && 'AI Documentation & Explanation Studio'}
                 </h3>
               </div>
 
@@ -1734,6 +1873,197 @@ export default function App() {
 
                       </div>
                     </div>
+                  )}
+
+                  {activeTab === 'rag' && (
+                    <motion.div 
+                      key="rag"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-8"
+                    >
+                      <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-xl space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <h4 className="font-bold text-white text-base">Repository RAG Vector Indexer</h4>
+                            <p className="text-xs text-on-surface-variant">Index repository code into pgvector for semantic search & QA</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="text" 
+                              value={ragRepo} 
+                              onChange={(e) => setRagRepo(e.target.value)}
+                              placeholder="owner/repo"
+                              className="bg-slate-950 border border-white/[0.08] text-xs font-mono text-white rounded-xl px-4 py-2 w-64"
+                            />
+                            <button
+                              onClick={handleIndexRepo}
+                              disabled={indexing}
+                              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 text-white font-bold text-xs px-5 py-2 rounded-xl flex items-center gap-2 disabled:opacity-50"
+                            >
+                              <Database className="w-3.5 h-3.5" />
+                              {indexing ? 'Indexing...' : 'Index Repo'}
+                            </button>
+                          </div>
+                        </div>
+                        {indexStatus && (
+                          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs font-mono text-indigo-300">
+                            {indexStatus}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Chat box */}
+                      <div className="glass-card rounded-2xl border border-white/[0.05] shadow-xl flex flex-col h-[520px] overflow-hidden">
+                        <div className="p-4 border-b border-white/[0.05] bg-white/[0.01] flex items-center justify-between">
+                          <span className="font-bold text-xs font-mono text-slate-300 flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-indigo-400" />
+                            RAG Code Assistant - {ragRepo}
+                          </span>
+                        </div>
+                        
+                        <div className="flex-1 p-6 overflow-y-auto space-y-4 font-mono text-xs">
+                          {chatMessages.map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-2xl p-4 rounded-2xl leading-relaxed ${
+                                msg.sender === 'user' 
+                                  ? 'bg-indigo-600 text-white font-sans' 
+                                  : 'bg-slate-900 border border-white/[0.08] text-slate-200'
+                              }`}>
+                                <p className="whitespace-pre-wrap">{msg.text}</p>
+                                {msg.sources && msg.sources.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-white/10 text-[10px] text-slate-400 space-y-1">
+                                    <span className="font-bold uppercase tracking-wider text-indigo-400">Sources:</span>
+                                    {msg.sources.map((src, i) => (
+                                      <div key={i} className="truncate">• {src}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {chatLoading && (
+                            <div className="flex justify-start">
+                              <div className="bg-slate-900 border border-white/[0.08] text-slate-400 p-4 rounded-2xl flex items-center gap-2">
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                                Searching vector embeddings...
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <form onSubmit={handleSendChat} className="p-4 border-t border-white/[0.05] bg-slate-950 flex gap-3">
+                          <input 
+                            type="text" 
+                            value={chatQuery}
+                            onChange={(e) => setChatQuery(e.target.value)}
+                            placeholder="Ask a question about the repository code..."
+                            className="flex-1 bg-slate-900 border border-white/[0.08] text-xs font-mono text-white rounded-xl px-4 py-2.5 focus:border-indigo-500/40 outline-none"
+                          />
+                          <button
+                            type="submit"
+                            disabled={chatLoading}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            Send
+                          </button>
+                        </form>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'docs' && (
+                    <motion.div 
+                      key="docs"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                    >
+                      {/* Left: Code Explanation */}
+                      <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-xl space-y-4 flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-bold text-white text-base">AI Code Explainer</h4>
+                            <p className="text-xs text-on-surface-variant">Get structured analysis of any code snippet</p>
+                          </div>
+                          <select 
+                            value={codeLang} 
+                            onChange={(e) => setCodeLang(e.target.value)}
+                            className="bg-slate-950 border border-white/[0.08] text-xs font-mono text-white rounded-lg px-3 py-1.5"
+                          >
+                            <option value="java">Java</option>
+                            <option value="python">Python</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="sql">SQL</option>
+                          </select>
+                        </div>
+
+                        <textarea 
+                          rows={6}
+                          value={codeSnippet}
+                          onChange={(e) => setCodeSnippet(e.target.value)}
+                          className="w-full bg-slate-950 border border-white/[0.08] text-xs font-mono text-slate-300 rounded-xl p-4 outline-none focus:border-indigo-500/40"
+                          placeholder="Paste code snippet here..."
+                        />
+
+                        <button
+                          onClick={handleExplainCode}
+                          disabled={explaining}
+                          className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {explaining ? 'Analyzing Snippet...' : 'Explain Code'}
+                        </button>
+
+                        {explanationResult && (
+                          <div className="p-4 bg-slate-950 border border-white/[0.08] rounded-xl text-xs font-mono text-slate-300 max-h-60 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                            {explanationResult}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Documentation Generator */}
+                      <div className="glass-card p-6 rounded-2xl border border-white/[0.05] shadow-xl space-y-4 flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-bold text-white text-base">Repository Doc Generator</h4>
+                            <p className="text-xs text-on-surface-variant">Generate RAG-grounded documentation</p>
+                          </div>
+                          <select 
+                            value={docFormat} 
+                            onChange={(e) => setDocFormat(e.target.value)}
+                            className="bg-slate-950 border border-white/[0.08] text-xs font-mono text-white rounded-lg px-3 py-1.5"
+                          >
+                            <option value="README">README.md</option>
+                            <option value="ARCHITECTURE">Architecture Guide</option>
+                            <option value="JAVADOC">Javadoc / API Specs</option>
+                          </select>
+                        </div>
+
+                        <div className="p-4 bg-slate-950/60 rounded-xl border border-white/[0.05] text-xs text-slate-400 space-y-2 font-mono">
+                          <p>Target Repository: <span className="text-indigo-400 font-bold">{ragRepo}</span></p>
+                          <p>Synthesizes indexed codebase context into structured Markdown.</p>
+                        </div>
+
+                        <button
+                          onClick={handleGenerateDoc}
+                          disabled={generatingDoc}
+                          className="bg-gradient-to-r from-purple-500 to-pink-600 hover:brightness-110 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          {generatingDoc ? 'Synthesizing Documentation...' : 'Generate Documentation'}
+                        </button>
+
+                        {docResult && (
+                          <div className="p-4 bg-slate-950 border border-white/[0.08] rounded-xl text-xs font-mono text-slate-300 max-h-60 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                            {docResult}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
 
                 </motion.div>

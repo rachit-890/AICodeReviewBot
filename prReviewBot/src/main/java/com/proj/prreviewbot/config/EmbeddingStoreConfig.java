@@ -1,7 +1,13 @@
 package com.proj.prreviewbot.config;
 
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiEmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.filter.Filter;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +27,7 @@ import java.util.regex.Pattern;
  * 
  * Extracts host, port, database, user, and password from spring.datasource.url
  * to support seamless deployment on cloud platforms like Render.
+ * Includes a resilient fallback store if vector database connection fails on startup.
  */
 @Configuration
 public class EmbeddingStoreConfig {
@@ -51,7 +62,7 @@ public class EmbeddingStoreConfig {
     private String geminiApiKey;
 
     @Bean
-    public PgVectorEmbeddingStore embeddingStore() {
+    public EmbeddingStore<TextSegment> embeddingStore() {
         String dbHost = "localhost";
         int dbPort = 5432;
         String dbName = "codereviewdb";
@@ -75,15 +86,21 @@ public class EmbeddingStoreConfig {
 
         log.info("Configuring PgVectorEmbeddingStore for host '{}', port {}, database '{}'", dbHost, dbPort, dbName);
 
-        return PgVectorEmbeddingStore.builder()
-                .host(dbHost)
-                .port(dbPort)
-                .database(dbName)
-                .user(dbUser)
-                .password(dbPass)
-                .table(tableName)
-                .dimension(dimension)
-                .build();
+        try {
+            return PgVectorEmbeddingStore.builder()
+                    .host(dbHost)
+                    .port(dbPort)
+                    .database(dbName)
+                    .user(dbUser)
+                    .password(dbPass)
+                    .table(tableName)
+                    .dimension(dimension)
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to initialize PgVectorEmbeddingStore at {}:{}/{} ({}). Initializing FallbackEmbeddingStore to allow application startup.",
+                    dbHost, dbPort, dbName, e.getMessage());
+            return new FallbackEmbeddingStore();
+        }
     }
 
     @Bean
@@ -92,5 +109,48 @@ public class EmbeddingStoreConfig {
                 .apiKey(geminiApiKey)
                 .modelName("text-embedding-004")
                 .build();
+    }
+
+    private static class FallbackEmbeddingStore implements EmbeddingStore<TextSegment> {
+        @Override
+        public String add(dev.langchain4j.data.embedding.Embedding embedding) {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public void add(String id, dev.langchain4j.data.embedding.Embedding embedding) {
+        }
+
+        @Override
+        public String add(dev.langchain4j.data.embedding.Embedding embedding, TextSegment textSegment) {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public List<String> addAll(List<dev.langchain4j.data.embedding.Embedding> embeddings) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<String> addAll(List<dev.langchain4j.data.embedding.Embedding> embeddings, List<TextSegment> embedded) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
+            return new EmbeddingSearchResult<>(Collections.<EmbeddingMatch<TextSegment>>emptyList());
+        }
+
+        @Override
+        public void removeAll(Filter filter) {
+        }
+
+        @Override
+        public void removeAll(Collection<String> ids) {
+        }
+
+        @Override
+        public void removeAll() {
+        }
     }
 }

@@ -11,7 +11,9 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.filter.Filter;
 import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
-import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.filter.Filter;
+import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +37,7 @@ import java.util.stream.Stream;
  * Design & Architecture Decisions:
  * 1. Idempotent Re-Indexing & Purge (Correction 6):
  *    Before indexing a repository, all existing metadata rows in repo_documents AND vector embeddings
- *    in PgVectorEmbeddingStore for that repository are purged to prevent stale chunks or secret leaks.
+ *    in EmbeddingStore for that repository are purged to prevent stale chunks or secret leaks.
  * 2. Double-Gated Metadata Isolation (Correction 2):
  *    Applies DB-level metadata filtering (IsEqualTo("repository", repository)) AND 
  *    in-memory post-filtering validation to guarantee ZERO cross-repository leakage.
@@ -59,7 +61,7 @@ public class RAGService {
             "jar", "war", "ear", "class", "exe", "dll", "so", "dylib", "db", "sqlite"
     );
 
-    private final PgVectorEmbeddingStore embeddingStore;
+    private final EmbeddingStore<TextSegment> embeddingStore;
     private final EmbeddingModel embeddingModel;
     private final JdbcTemplate jdbcTemplate;
 
@@ -72,7 +74,7 @@ public class RAGService {
     @Value("${rag.indexing.excluded-patterns:**/.env*,**/application*.properties,**/application*.yml,**/docker-compose*.yml,**/k8s/secret*.yaml,**/k8s/secret*.yml}")
     private String[] excludedPatterns;
 
-    public RAGService(PgVectorEmbeddingStore embeddingStore,
+    public RAGService(EmbeddingStore<TextSegment> embeddingStore,
                       EmbeddingModel embeddingModel,
                       JdbcTemplate jdbcTemplate) {
         this.embeddingStore = embeddingStore;

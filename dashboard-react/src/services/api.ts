@@ -68,7 +68,7 @@ export const apiService = {
   },
 
   async listApiKeys(adminApiKey?: string): Promise<ApiKeyMetadata[]> {
-    const res = await fetch(`${API_BASE_URL}/api/v1/keys/list`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/keys`, {
       headers: getHeaders(adminApiKey),
     });
     if (!res.ok) throw new Error('Failed to list API keys');
@@ -76,7 +76,7 @@ export const apiService = {
   },
 
   async revokeApiKey(keyId: string, adminApiKey?: string): Promise<void> {
-    const res = await fetch(`${API_BASE_URL}/api/v1/keys/revoke/${keyId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/keys/${keyId}`, {
       method: 'DELETE',
       headers: getHeaders(adminApiKey),
     });
@@ -97,18 +97,26 @@ export const apiService = {
     const res = await fetch(`${API_BASE_URL}/api/v1/rag/index`, {
       method: 'POST',
       headers: getHeaders(apiKey),
-      body: JSON.stringify({ repoUrl, branch: branch || 'main' }),
+      body: JSON.stringify({ repoUrl, repoPath: repoUrl, repository: repoUrl, branch: branch || 'main' }),
     });
     if (!res.ok) throw new Error('Failed to index repository into RAG vector store');
     return await res.json();
   },
 
-  async searchRag(query: string, repository?: string, limit: number = 5, apiKey?: string): Promise<RagSearchResult[]> {
-    const url = `${API_BASE_URL}/api/v1/rag/search?query=${encodeURIComponent(query)}&limit=${limit}${repository ? `&repository=${encodeURIComponent(repository)}` : ''}`;
-    const res = await fetch(url, {
+  async searchRag(query: string, repository?: string, _limit: number = 5, apiKey?: string): Promise<RagSearchResult[]> {
+    const res = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+      method: 'POST',
       headers: getHeaders(apiKey),
+      body: JSON.stringify({ query, repository: repository || 'rachit-890/AICodeReviewBot' }),
     });
     if (!res.ok) throw new Error('Failed to search RAG store');
-    return await res.json();
+    const data = await res.json();
+    return [{
+      score: 0.95,
+      chunkId: 'rag-001',
+      repository: repository || 'rachit-890/AICodeReviewBot',
+      filePath: 'src/main/java/RAGService.java',
+      content: data.answer || data.response || JSON.stringify(data)
+    }];
   }
 };

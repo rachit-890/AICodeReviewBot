@@ -4,36 +4,43 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SentinAI | Premium AI Code Review Agent</title>
-    <meta name="description" content="SaaS-grade AI security agent auditing codebases, pull requests, and client credential metadata in real-time." />
+    <title>SentinAI | AI Code Review & Intelligence Platform</title>
+    <meta name="description" content="Autonomous AI security agent auditing codebases, pull requests, vector RAG knowledge bases, and API keys in real time." />
+    <!-- Google Fonts: Hanken Grotesk, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300..800&family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
           darkMode: "class",
           theme: {
             extend: {
               colors: {
-                background: "#050816",
-                surface: "#0b0f19",
-                "surface-container": "#111827",
-                "surface-container-low": "#0d1321",
-                "surface-container-high": "#1f2937",
-                "surface-container-highest": "#374151",
-                primary: "#6366f1", // Indigo
-                secondary: "#a855f7", // Purple
-                accent: "#06b6d4", // Cyan
-                electric: "#2563eb", // Electric blue
-                emerald: "#10b981", // Emerald green
-                pink: "#ec4899", // Pink accent
-                error: "#f43f5e",
-                "on-surface": "#f3f4f6",
-                "on-surface-variant": "#9ca3af",
-                outline: "#374151",
-                "outline-variant": "#4b5563"
+                background: "#0e1513",
+                surface: "#0e1513",
+                "surface-dim": "#0e1513",
+                "surface-bright": "#333b39",
+                "surface-container-lowest": "#09100e",
+                "surface-container-low": "#161d1b",
+                "surface-container": "#1a211f",
+                "surface-container-high": "#242b2a",
+                "surface-container-highest": "#2f3634",
+                primary: "#2dd4bf",
+                "primary-bright": "#57f1db",
+                "primary-container": "#00574d",
+                secondary: "#c6c6ca",
+                tertiary: "#d9dadc",
+                error: "#ffb4ab",
+                "error-container": "#93000a",
+                "on-surface": "#dde4e1",
+                "on-surface-variant": "#bacac5",
+                outline: "#859490",
+                "outline-variant": "#3c4a46"
               },
               fontFamily: {
-                sans: ["Geist", "Plus Jakarta Sans", "sans-serif"],
+                sans: ["Inter", "sans-serif"],
+                display: ["Hanken Grotesk", "sans-serif"],
                 mono: ["JetBrains Mono", "monospace"]
               }
             }
@@ -41,7 +48,7 @@
         }
     </script>
   </head>
-  <body class="bg-background text-on-surface antialiased">
+  <body class="bg-[#0e1513] text-[#dde4e1] antialiased selection:bg-[#2dd4bf]/20 selection:text-[#57f1db]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

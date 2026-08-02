@@ -3,106 +3,114 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-surface: #0e1513;
+    --bg-surface-container: #1a211f;
+    --bg-surface-low: #161d1b;
+    --bg-surface-high: #242b2a;
+    --bg-surface-highest: #2f3634;
+    --text-primary: #dde4e1;
+    --text-muted: #bacac5;
+    --accent-teal: #2dd4bf;
+    --accent-bright: #57f1db;
+    --border-hairline: #3c4a46;
+  }
+
   body {
-    background-color: #050816;
-    color: #f3f4f6;
-    font-family: 'Geist', 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Hanken Grotesk', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* Premium Custom Scrollbars */
-::-webkit-scrollbar { 
-  width: 6px; 
-  height: 6px;
+/* Custom Hairline Borders & IDE Glass Containers */
+.border-hairline {
+  border: 1px solid var(--border-hairline);
 }
 
-::-webkit-scrollbar-track { 
-  background: transparent; 
+.border-hairline-teal {
+  border: 1px solid rgba(45, 212, 191, 0.3);
 }
 
-::-webkit-scrollbar-thumb { 
-  background: rgba(255, 255, 255, 0.08); 
-  border-radius: 9999px; 
+.glass-obsidian {
+  background: rgba(26, 33, 31, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-hairline);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* Custom Glassmorphism Classes */
-.glass-card {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.glass-panel {
-  background: rgba(13, 19, 33, 0.4);
+.glass-obsidian-subtle {
+  background: rgba(14, 21, 19, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(60, 74, 70, 0.4);
 }
 
-/* Cyber Gradients & Text Glows */
-.gradient-text-indigo-purple {
-  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+/* Cyber Glow Text & Button Animations */
+.text-glow-teal {
+  text-shadow: 0 0 16px rgba(45, 212, 191, 0.4);
+}
+
+.glow-teal:hover {
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.18);
+  border-color: var(--accent-teal);
+}
+
+.gradient-text-teal {
+  background: linear-gradient(135deg, #57f1db 0%, #2dd4bf 50%, #006b5f 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-text-electric-cyan {
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Glow Border & Shading Animations */
-.glow-indigo:hover {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
-}
-
-.glow-purple:hover {
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-.glow-cyan:hover {
-  box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
-  border-color: rgba(6, 182, 212, 0.3);
-}
-
-/* grid backdrop overlays */
-.grid-bg {
-  background-size: 40px 40px;
+/* Grid Backdrop Pattern */
+.grid-bg-obsidian {
+  background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(60, 74, 70, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(60, 74, 70, 0.15) 1px, transparent 1px);
 }
 
 .grid-bg-fine {
-  background-size: 20px 20px;
+  background-size: 16px 16px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    linear-gradient(to right, rgba(60, 74, 70, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(60, 74, 70, 0.1) 1px, transparent 1px);
 }
 
-/* Orbiting Animation for 3D simulation elements */
-@keyframes orbit {
-  from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-  to   { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+/* Custom Hairline Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
 }
 
-.orbit-node {
-  animation: orbit 24s linear infinite;
+::-webkit-scrollbar-track {
+  background: #09100e;
 }
 
-@keyframes orbit-slow {
-  from { transform: rotate(180deg) translateX(180px) rotate(-180deg); }
-  to   { transform: rotate(540deg) translateX(180px) rotate(-540deg); }
+::-webkit-scrollbar-thumb {
+  background: #242b2a;
+  border-radius: 0px;
 }
 
-.orbit-node-slow {
-  animation: orbit-slow 36s linear infinite;
+::-webkit-scrollbar-thumb:hover {
+  background: #3c4a46;
+}
+
+/* Pulse Keyframes */
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.radar-sweep {
+  animation: radar-sweep 12s linear infinite;
 }

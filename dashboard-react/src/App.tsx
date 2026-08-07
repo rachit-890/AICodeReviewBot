@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, LayoutDashboard, Lock, Key, 
-  GitPullRequest, Database, BookOpen, Activity
+  GitPullRequest, Database, BookOpen, Activity, Menu, X 
 } from 'lucide-react';
 
 import { LandingPage } from './pages/LandingPage';
@@ -19,6 +19,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('sentinai_api_key') || '');
   const [isLockscreenOpen, setIsLockscreenOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [healthStatus, setHealthStatus] = useState<string>('CHECKING...');
   const [reviewHistory, setReviewHistory] = useState<ReviewDetail[]>([]);
   const [selectedReview, setSelectedReview] = useState<ReviewDetail | null>(null);
@@ -54,34 +55,40 @@ export default function App() {
   };
 
   const navItems = [
-    { id: 'landing', label: 'OVERVIEW', icon: Activity },
-    { id: 'overview', label: 'DASHBOARD', icon: LayoutDashboard },
-    { id: 'diff-studio', label: 'PR DIFF STUDIO', icon: GitPullRequest },
-    { id: 'docs-studio', label: 'DOCS STUDIO', icon: BookOpen },
-    { id: 'rag-studio', label: 'RAG KNOWLEDGE', icon: Database },
-    { id: 'credentials', label: 'KEYS & GOVERNANCE', icon: Key },
+    { id: 'landing', label: 'OVERVIEW', shortLabel: 'HOME', icon: Activity },
+    { id: 'overview', label: 'DASHBOARD', shortLabel: 'DASH', icon: LayoutDashboard },
+    { id: 'diff-studio', label: 'PR STUDIO', shortLabel: 'PR DIFF', icon: GitPullRequest },
+    { id: 'docs-studio', label: 'DOCS', shortLabel: 'DOCS', icon: BookOpen },
+    { id: 'rag-studio', label: 'RAG KNOWLEDGE', shortLabel: 'RAG', icon: Database },
+    { id: 'credentials', label: 'GOVERNANCE', shortLabel: 'KEYS', icon: Key },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0e1513] text-[#dde4e1] font-sans selection:bg-[#2dd4bf]/20 selection:text-[#57f1db] flex flex-col">
-      {/* Top Main Navigation Bar (Stitch Screen 1033a060b4154ac0be9ba49377307413) */}
-      <header className="sticky top-0 z-40 bg-[#161d1b]/90 backdrop-blur-md border-b border-[#3c4a46] px-4 lg:px-8 py-3 flex items-center justify-between">
-        {/* Brand Title */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
-          <div className="w-8 h-8 bg-[#1a211f] border border-[#2dd4bf] flex items-center justify-center text-[#2dd4bf]">
-            <Shield className="w-4 h-4" />
+    <div className="min-h-screen bg-[#FDFBFC] text-[#201E1E] font-sans selection:bg-[#F7D3CC] selection:text-[#164A40] flex flex-col relative">
+      
+      {/* ========================================================================= */}
+      {/* DESKTOP RIGHT-SIDE VERTICAL NAVIGATION RAIL (Fixed 110px width on Right)  */}
+      {/* ========================================================================= */}
+      <aside className="hidden lg:flex fixed right-0 top-0 bottom-0 w-[110px] bg-[#164A40] text-[#FDFBFC] flex-col justify-between items-center py-6 border-l border-[#A68B78]/30 z-50 select-none shadow-xl">
+        
+        {/* Top: Brand Identity / Logo */}
+        <div 
+          onClick={() => setActiveTab('landing')}
+          className="flex flex-col items-center cursor-pointer group px-2 text-center"
+        >
+          <div className="w-10 h-10 bg-[#FDFBFC] text-[#164A40] flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
+            <Shield className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-display font-black text-base text-[#dde4e1] tracking-wider">SENTINAI</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-[#00574d]/40 border border-[#2dd4bf] text-[#57f1db]">PRO</span>
-            </div>
-            <p className="text-[10px] font-mono text-[#bacac5] hidden sm:block">AI CODE REVIEW & SECURITY PLATFORM</p>
-          </div>
+          <span className="font-display font-black text-[11px] tracking-widest text-[#FDFBFC] mt-2 group-hover:text-[#F7D3CC] transition-colors">
+            SENTINAI
+          </span>
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-[#F7D3CC] text-[#164A40] mt-1 tracking-wider">
+            PRO
+          </span>
         </div>
 
-        {/* Center Tabs */}
-        <nav className="hidden md:flex items-center space-x-1 font-mono text-xs">
+        {/* Center: Vertical Navigation Rail Items */}
+        <nav className="flex flex-col items-center space-y-5 my-auto w-full px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -89,60 +96,141 @@ export default function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-3 py-2 border transition-all flex items-center space-x-2 ${
+                className={`w-full py-2.5 px-1.5 flex flex-col items-center justify-center space-y-1 transition-all duration-300 relative group ${
                   isActive
-                    ? 'bg-[#1a211f] border-[#2dd4bf] text-[#57f1db] font-bold shadow-sm shadow-[#2dd4bf]/20'
-                    : 'bg-transparent border-transparent text-[#bacac5] hover:text-[#dde4e1] hover:bg-[#1a211f]/40'
+                    ? 'text-[#F7D3CC] font-bold'
+                    : 'text-[#FDFBFC]/70 hover:text-[#F7D3CC]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#2dd4bf]' : 'text-[#bacac5]'}`} />
-                <span>{item.label}</span>
+                {/* Active Indicator Accent Line on Right Edge */}
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeNavIndicator"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#F7D3CC]"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+
+                <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-[#F7D3CC]' : 'text-[#FDFBFC]/70 group-hover:text-[#F7D3CC]'}`} />
+                
+                <span className="text-[9px] font-mono tracking-widest text-center leading-tight">
+                  {item.shortLabel}
+                </span>
               </button>
             );
           })}
         </nav>
 
-        {/* Right Controls */}
-        <div className="flex items-center space-x-3 text-xs font-mono">
-          {/* Backend Status Pill */}
-          <div className="hidden sm:flex items-center space-x-2 px-2.5 py-1 bg-[#09100e] border border-[#3c4a46]">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2dd4bf] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2dd4bf]"></span>
-            </span>
-            <span className="text-[#bacac5] text-[11px]">API: {healthStatus}</span>
+        {/* Bottom Controls & Telemetry */}
+        <div className="flex flex-col items-center space-y-4 px-2 w-full">
+          {/* Subtle Decorative Dots */}
+          <div className="flex space-x-1.5 text-[#A68B78]/60 text-[10px]">
+            <span>•</span>
+            <span>•</span>
+            <span>•</span>
           </div>
 
-          {/* Auth Key Gate */}
+          {/* API Health Pill */}
+          <div className="flex flex-col items-center text-[9px] font-mono text-[#A68B78]">
+            <span className="flex h-2 w-2 relative mb-1">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F7D3CC] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F7D3CC]"></span>
+            </span>
+            <span className="text-[8px] tracking-tighter text-[#FDFBFC]/80">{healthStatus}</span>
+          </div>
+
+          {/* Auth Gate Button */}
           <button
             onClick={() => setIsLockscreenOpen(true)}
-            className="px-3 py-1.5 bg-[#1a211f] border border-[#3c4a46] hover:border-[#2dd4bf] text-[#2dd4bf] hover:text-[#57f1db] transition-colors flex items-center space-x-2"
+            title={apiKey ? 'API Key Active' : 'Unlock Auth Session'}
+            className="w-8 h-8 bg-[#FDFBFC]/10 hover:bg-[#F7D3CC] border border-[#A68B78]/40 hover:border-[#F7D3CC] text-[#FDFBFC] hover:text-[#164A40] transition-colors flex items-center justify-center"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{apiKey ? 'KEY ACTIVE' : 'AUTH LOCK'}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ========================================================================= */}
+      {/* MOBILE / TABLET HEADER (< lg Viewports)                                  */}
+      {/* ========================================================================= */}
+      <header className="lg:hidden sticky top-0 z-40 bg-[#164A40] text-[#FDFBFC] border-b border-[#A68B78]/30 px-4 py-3 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
+          <div className="w-7 h-7 bg-[#FDFBFC] text-[#164A40] flex items-center justify-center">
+            <Shield className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="font-display font-black text-sm text-[#FDFBFC] tracking-wider">SENTINAI</span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-[#F7D3CC] text-[#164A40]">PRO</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setIsLockscreenOpen(true)}
+            className="p-1.5 bg-[#FDFBFC]/10 text-[#F7D3CC] border border-[#A68B78]/30 text-xs font-mono"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-1.5 text-[#FDFBFC] hover:text-[#F7D3CC] transition-colors"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Navigation Drawer */}
-      <div className="md:hidden bg-[#161d1b] border-b border-[#3c4a46] px-4 py-2 flex overflow-x-auto space-x-2 font-mono text-xs">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`px-3 py-1.5 border shrink-0 ${
-              activeTab === item.id
-                ? 'bg-[#1a211f] border-[#2dd4bf] text-[#57f1db] font-bold'
-                : 'border-[#3c4a46] text-[#bacac5]'
-            }`}
+      {/* Mobile Editorial Overlay Navigation Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="lg:hidden fixed inset-0 top-[53px] z-30 bg-[#164A40] text-[#FDFBFC] p-6 flex flex-col justify-between border-t border-[#A68B78]/30"
           >
-            {item.label}
-          </button>
-        ))}
-      </div>
+            <nav className="flex flex-col space-y-4">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`p-4 border text-left font-mono text-xs font-bold transition-all flex items-center justify-between ${
+                      isActive
+                        ? 'bg-[#FDFBFC] text-[#164A40] border-[#F7D3CC]'
+                        : 'bg-transparent border-[#A68B78]/30 text-[#FDFBFC] hover:bg-[#FDFBFC]/10'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </div>
+                    {isActive && <span className="text-[10px] text-[#164A40] font-black">ACTIVE</span>}
+                  </button>
+                );
+              })}
+            </nav>
 
-      {/* Main View Screen Body */}
-      <main className="flex-1">
+            <div className="pt-6 border-t border-[#A68B78]/30 flex justify-between items-center text-xs font-mono text-[#A68B78]">
+              <span>STATUS: {healthStatus}</span>
+              <span>SENTINAI V1.0</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* MAIN CONTENT BODY (Offset on Desktop by lg:pr-[110px] for Right Nav Rail) */}
+      {/* ========================================================================= */}
+      <main className="flex-1 lg:pr-[110px] transition-all">
         <AnimatePresence mode="wait">
           {activeTab === 'landing' && (
             <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -209,8 +297,11 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="border-t border-[#3c4a46] bg-[#09100e] px-6 py-4 text-center text-xs font-mono text-[#859490]">
-        SentinAI Autonomous Code Review & Intelligence Agent &copy; {new Date().getFullYear()} — Powered by Spring Boot & Google Gemini AI.
+      <footer className="lg:pr-[110px] border-t border-[#A68B78]/30 bg-[#164A40] text-[#FDFBFC] px-6 py-6 text-center text-xs font-mono">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>SentinAI Autonomous Code Security Agent &copy; {new Date().getFullYear()}</span>
+          <span className="text-[#F7D3CC]">Cotswolds Luxury Editorial Architecture</span>
+        </div>
       </footer>
     </div>
   );

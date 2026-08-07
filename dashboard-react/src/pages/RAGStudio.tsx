@@ -56,54 +56,54 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 max-w-6xl mx-auto bg-[#FDFBFC] text-[#201E1E]">
       {/* Top Header */}
-      <div className="border-b border-[#3c4a46] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-[#A68B78]/30 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black font-display tracking-tight text-[#dde4e1] uppercase flex items-center space-x-3">
+          <h2 className="text-2xl font-black font-display tracking-tight text-[#164A40] uppercase flex items-center space-x-3">
             <span>RAG VECTOR KNOWLEDGE BASE</span>
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 bg-[#00574d]/40 border border-[#2dd4bf] text-[#57f1db]">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 bg-[#164A40] text-[#F7D3CC]">
               768-DIM PGVECTOR
             </span>
           </h2>
-          <p className="text-xs text-[#bacac5] font-mono mt-1">Repository semantic chunking, vector embedding indexing, and high-dimensional search.</p>
+          <p className="text-xs text-[#634F43] font-mono mt-1">Repository semantic chunking, vector embedding indexing, and high-dimensional search.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Repository Indexing Box */}
-        <div className="lg:col-span-5 bg-[#161d1b] border border-[#3c4a46] p-5 space-y-4">
-          <h3 className="text-sm font-bold font-display text-[#dde4e1] uppercase flex items-center space-x-2 border-b border-[#3c4a46] pb-3">
-            <RefreshCw className="w-4 h-4 text-[#2dd4bf]" />
+        <div className="lg:col-span-5 bg-[#FDFBFC] border border-[#A68B78]/40 p-6 space-y-4 shadow-sm">
+          <h3 className="text-sm font-bold font-display text-[#164A40] uppercase flex items-center space-x-2 border-b border-[#A68B78]/30 pb-3">
+            <RefreshCw className="w-4 h-4 text-[#164A40]" />
             <span>RE-INDEX REPOSITORY CODEBASE</span>
           </h3>
 
           <form onSubmit={handleIndexRepo} className="space-y-4 font-mono text-xs">
             <div>
-              <label className="block text-[10px] text-[#bacac5] uppercase mb-1">GitHub Repo URL</label>
+              <label className="block text-[10px] text-[#634F43] uppercase mb-1 font-semibold">GitHub Repo URL</label>
               <input
                 type="text"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                className="w-full bg-[#09100e] border border-[#3c4a46] px-3 py-1.5 text-xs font-mono text-[#dde4e1] focus:outline-none focus:border-[#2dd4bf]"
+                className="w-full bg-[#F4EFEB] border border-[#A68B78]/40 px-3 py-2 text-xs font-mono text-[#201E1E] focus:outline-none focus:border-[#164A40]"
               />
             </div>
 
             <button
               type="submit"
               disabled={isIndexing}
-              className="w-full py-2.5 bg-[#2dd4bf] hover:bg-[#57f1db] text-[#0e1513] font-bold text-xs font-mono tracking-wider transition-colors flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-[#164A40] hover:bg-[#0f362e] text-[#FDFBFC] hover:text-[#F7D3CC] font-bold text-xs font-mono tracking-wider transition-colors flex items-center justify-center space-x-2 shadow-sm"
             >
-              <Database className="w-4 h-4" />
+              <Database className="w-4 h-4 text-[#F7D3CC]" />
               <span>{isIndexing ? 'INDEXING REPO INTO PGVECTOR...' : 'PURGE & RE-INDEX VECTOR STORE'}</span>
             </button>
           </form>
         </div>
 
         {/* Vector Search Inspector */}
-        <div className="lg:col-span-7 bg-[#161d1b] border border-[#3c4a46] p-5 space-y-4">
-          <h3 className="text-sm font-bold font-display text-[#dde4e1] uppercase flex items-center space-x-2 border-b border-[#3c4a46] pb-3">
-            <Search className="w-4 h-4 text-[#2dd4bf]" />
+        <div className="lg:col-span-7 bg-[#FDFBFC] border border-[#A68B78]/40 p-6 space-y-4 shadow-sm">
+          <h3 className="text-sm font-bold font-display text-[#164A40] uppercase flex items-center space-x-2 border-b border-[#A68B78]/30 pb-3">
+            <Search className="w-4 h-4 text-[#164A40]" />
             <span>VECTOR SEARCH INSPECTOR</span>
           </h3>
 
@@ -113,12 +113,12 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Query semantic codebase context..."
-              className="flex-1 bg-[#09100e] border border-[#3c4a46] px-3 py-1.5 text-xs font-mono text-[#dde4e1] focus:outline-none focus:border-[#2dd4bf]"
+              className="flex-1 bg-[#F4EFEB] border border-[#A68B78]/40 px-3 py-2 text-xs font-mono text-[#201E1E] focus:outline-none focus:border-[#164A40]"
             />
             <button
               type="submit"
               disabled={isSearching}
-              className="px-4 py-1.5 bg-[#1a211f] border border-[#3c4a46] hover:border-[#2dd4bf] text-xs font-mono text-[#2dd4bf] font-bold"
+              className="px-4 py-2 bg-[#164A40] hover:bg-[#0f362e] border border-[#164A40] text-xs font-mono text-[#FDFBFC] font-bold shadow-sm"
             >
               SEARCH
             </button>
@@ -127,14 +127,14 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
           {/* Search Result Chunks */}
           <div className="space-y-3 font-mono text-xs">
             {searchResults.map((res, i) => (
-              <div key={i} className="p-3 bg-[#09100e] border border-[#3c4a46] space-y-2">
+              <div key={i} className="p-4 bg-[#F4EFEB] border border-[#A68B78]/30 space-y-2">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#57f1db] font-bold">{res.filePath}</span>
-                  <span className="px-2 py-0.5 bg-[#00574d]/30 border border-[#2dd4bf] text-[#2dd4bf]">
+                  <span className="text-[#164A40] font-bold">{res.filePath}</span>
+                  <span className="px-2 py-0.5 bg-[#164A40] text-[#F7D3CC] font-bold text-[10px]">
                     COSINE SIM: {(res.score * 100).toFixed(1)}%
                   </span>
                 </div>
-                <p className="text-[#bacac5] text-[11px] leading-relaxed">{res.content}</p>
+                <p className="text-[#634F43] text-[11px] leading-relaxed">{res.content}</p>
               </div>
             ))}
           </div>

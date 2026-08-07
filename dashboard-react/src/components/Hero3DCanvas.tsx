@@ -23,16 +23,18 @@ export function Hero3DCanvas() {
       color: string;
     }> = [];
 
-    const numParticles = 80;
+    const colors = ['#164A40', '#F7D3CC', '#A68B78', '#D3B29C'];
+
+    const numParticles = 75;
     for (let i = 0; i < numParticles; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
         z: Math.random() * 200,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
         radius: Math.random() * 1.8 + 0.8,
-        color: i % 3 === 0 ? '#2dd4bf' : i % 3 === 1 ? '#57f1db' : '#3c4a46',
+        color: colors[i % colors.length],
       });
     }
 
@@ -57,29 +59,30 @@ export function Hero3DCanvas() {
     window.addEventListener('resize', handleResize);
 
     const draw = () => {
-      ctx.fillStyle = 'rgba(14, 21, 19, 0.2)';
+      // Warm Ivory fade
+      ctx.fillStyle = 'rgba(253, 251, 252, 0.25)';
       ctx.fillRect(0, 0, width, height);
 
       // Smooth mouse tracking
       mouseX += (targetMouseX - mouseX) * 0.05;
       mouseY += (targetMouseY - mouseY) * 0.05;
 
-      // Glowing cursor light halo (Obsidian & Teal)
+      // Soft Forest Green halo around mouse cursor
       const gradient1 = ctx.createRadialGradient(mouseX, mouseY, 5, mouseX, mouseY, 160);
-      gradient1.addColorStop(0, 'rgba(45, 212, 191, 0.08)');
-      gradient1.addColorStop(1, 'rgba(14, 21, 19, 0)');
+      gradient1.addColorStop(0, 'rgba(22, 74, 64, 0.06)');
+      gradient1.addColorStop(1, 'rgba(253, 251, 252, 0)');
       ctx.fillStyle = gradient1;
       ctx.beginPath();
       ctx.arc(mouseX, mouseY, 160, 0, Math.PI * 2);
       ctx.fill();
 
-      // Orbiting node ring
-      const time = Date.now() * 0.0005;
+      // Orbiting Blush Pink node halo
+      const time = Date.now() * 0.0004;
       const orbX = width / 2 + Math.cos(time) * 180;
       const orbY = height / 2 + Math.sin(time) * 100;
       const gradient2 = ctx.createRadialGradient(orbX, orbY, 4, orbX, orbY, 130);
-      gradient2.addColorStop(0, 'rgba(87, 241, 219, 0.1)');
-      gradient2.addColorStop(1, 'rgba(14, 21, 19, 0)');
+      gradient2.addColorStop(0, 'rgba(247, 211, 204, 0.14)');
+      gradient2.addColorStop(1, 'rgba(253, 251, 252, 0)');
       ctx.fillStyle = gradient2;
       ctx.beginPath();
       ctx.arc(orbX, orbY, 130, 0, Math.PI * 2);
@@ -108,14 +111,14 @@ export function Hero3DCanvas() {
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Connect nearby particles with hairline connections
+        // Connect nearby particles with subtle taupe hairline connections
         for (let j = idx + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const pdx = p.x - p2.x;
           const pdy = p.y - p2.y;
           const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
           if (pdist < 100) {
-            ctx.strokeStyle = `rgba(60, 74, 70, ${0.15 * (1 - pdist / 100)})`;
+            ctx.strokeStyle = `rgba(166, 139, 120, ${0.18 * (1 - pdist / 100)})`;
             ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);

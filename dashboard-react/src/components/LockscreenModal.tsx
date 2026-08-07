@@ -28,25 +28,25 @@ export function LockscreenModal({ isOpen, onClose, onAuthenticate, currentApiKey
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#FDFBFC] border border-[#A68B78]/40 p-6 shadow-xl relative overflow-hidden"
+        className="w-full max-w-md bg-[#FDFBFC] border border-[#A68B78]/30 p-8 shadow-2xl relative overflow-hidden font-sans"
       >
         {/* Top accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-[#164A40]" />
 
-        <div className="flex items-center space-x-3 mb-6">
+        <div className="flex items-center space-x-4 mb-6">
           <div className="w-10 h-10 bg-[#164A40] flex items-center justify-center text-[#F7D3CC]">
             <Lock className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold font-display text-[#164A40] tracking-wide">CONSOLE LOCKSCREEN</h3>
-            <p className="text-xs text-[#634F43] font-mono">SentinAI Session Security Gate</p>
+            <h3 className="text-xl font-extrabold text-[#164A40]">Console Lockscreen</h3>
+            <p className="text-xs text-[#634F43] font-editorial italic">SentinAI Session Security Gate</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 font-sans">
           {/* Target Environment Selector */}
           <div>
-            <label className="block text-xs font-semibold text-[#634F43] font-mono uppercase tracking-wider mb-2 flex items-center justify-between">
+            <label className="block text-xs font-mono uppercase text-[#634F43] mb-2 flex items-center justify-between font-medium">
               <span>Target Environment</span>
               <Server className="w-3.5 h-3.5 text-[#164A40]" />
             </label>
@@ -70,7 +70,7 @@ export function LockscreenModal({ isOpen, onClose, onAuthenticate, currentApiKey
 
           {/* Client API Key Input */}
           <div>
-            <label className="block text-xs font-semibold text-[#634F43] font-mono uppercase tracking-wider mb-2 flex items-center justify-between">
+            <label className="block text-xs font-mono uppercase text-[#634F43] mb-2 flex items-center justify-between font-medium">
               <span>Client API Key</span>
               <Key className="w-3.5 h-3.5 text-[#164A40]" />
             </label>
@@ -80,7 +80,7 @@ export function LockscreenModal({ isOpen, onClose, onAuthenticate, currentApiKey
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
                 placeholder="sentin_live_xxxxxxxxxxxxxxxx"
-                className="w-full bg-[#F4EFEB] border border-[#A68B78]/40 px-4 py-2.5 text-sm font-mono text-[#201E1E] placeholder-[#A68B78]/70 focus:outline-none focus:border-[#164A40] transition-colors pr-10"
+                className="w-full bg-[#F4EFEB] border border-[#A68B78]/30 px-4 py-2.5 text-xs font-mono text-[#201E1E] placeholder-[#A68B78]/70 focus:outline-none focus:border-[#164A40] transition-colors pr-10"
               />
               <button
                 type="button"
@@ -90,26 +90,26 @@ export function LockscreenModal({ isOpen, onClose, onAuthenticate, currentApiKey
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-[#634F43]/80 mt-1.5 font-mono">
-              Keys are encrypted locally and injected into HTTP header <code className="text-[#164A40] font-bold">X-API-Key</code>.
+            <p className="text-[11px] text-[#634F43] mt-1.5 font-sans">
+              Keys are encrypted locally and injected into HTTP header <code className="text-[#164A40] font-mono font-bold">X-API-Key</code>.
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-2 flex items-center justify-between space-x-3">
+          <div className="pt-3 flex items-center justify-between space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#F4EFEB] border border-[#A68B78]/40 text-xs font-mono text-[#634F43] hover:text-[#164A40] hover:border-[#164A40] transition-colors"
+              className="px-4 py-2.5 bg-[#F4EFEB] border border-[#A68B78]/30 text-xs font-sans font-semibold text-[#634F43] hover:text-[#164A40] hover:border-[#164A40] transition-colors"
             >
-              CANCEL
+              Cancel
             </button>
 
             <button
               type="submit"
-              className="flex-1 py-2.5 px-4 bg-[#164A40] hover:bg-[#0f362e] text-[#FDFBFC] font-bold text-xs font-mono tracking-wider transition-colors flex items-center justify-center space-x-2"
+              className="flex-1 py-2.5 px-4 bg-[#164A40] hover:bg-[#0f362e] text-[#FDFBFC] font-sans font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-sm"
             >
-              <span>UNLOCK SESSION</span>
+              <span>Unlock Session</span>
               <ArrowRight className="w-4 h-4 text-[#F7D3CC]" />
             </button>
           </div>

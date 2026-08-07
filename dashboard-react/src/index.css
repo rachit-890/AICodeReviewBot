@@ -4,6 +4,11 @@
 
 @layer base {
   :root {
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-editorial: 'Source Serif 4', serif;
+    --font-serif: 'Source Serif 4', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
     --color-forest: #164A40;
     --color-blush: #F7D3CC;
     --color-ivory: #FDFBFC;
@@ -29,18 +34,34 @@
   body {
     background-color: var(--color-ivory);
     color: var(--color-charcoal);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Hanken Grotesk', sans-serif;
+    font-family: var(--font-sans);
     color: var(--color-forest);
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
+}
+
+.font-editorial, .font-serif {
+  font-family: var(--font-editorial);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* Glassmorphism for Right Navigation & Overlays */
+.nav-glass {
+  background: rgba(22, 74, 64, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-left: 1px solid rgba(253, 251, 252, 0.15);
 }
 
 /* Editorial Custom Hairline & Border Utilities */
@@ -80,6 +101,8 @@
 .btn-editorial-primary {
   background-color: #164A40;
   color: #FDFBFC;
+  font-family: var(--font-sans);
+  font-weight: 600;
   transition: all 250ms ease-in-out;
 }
 
@@ -92,6 +115,8 @@
   background-color: transparent;
   border: 1px solid #164A40;
   color: #164A40;
+  font-family: var(--font-sans);
+  font-weight: 600;
   transition: all 250ms ease-in-out;
 }
 

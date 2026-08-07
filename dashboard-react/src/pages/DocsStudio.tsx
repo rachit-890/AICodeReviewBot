@@ -37,17 +37,17 @@ export function DocsStudio({ apiKey }: DocsStudioProps) {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto bg-[#FDFBFC] text-[#201E1E]">
+    <div className="p-6 sm:p-10 space-y-8 max-w-6xl mx-auto bg-[#FDFBFC] text-[#201E1E] font-sans">
       {/* Top Header */}
-      <div className="border-b border-[#A68B78]/30 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-[#A68B78]/25 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black font-display tracking-tight text-[#164A40] uppercase flex items-center space-x-3">
-            <span>DOCS & EXPLANATION STUDIO</span>
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 bg-[#164A40] text-[#F7D3CC]">
+          <h2 className="text-3xl font-extrabold font-sans text-[#164A40] flex items-center space-x-3">
+            <span>Docs & Explanation Studio</span>
+            <span className="text-[10px] font-mono font-medium px-2.5 py-0.5 bg-[#164A40] text-[#F7D3CC]">
               AST ANALYSIS
             </span>
           </h2>
-          <p className="text-xs text-[#634F43] font-mono mt-1">Automated code documentation generation, AST parsing, and technical markdown export.</p>
+          <p className="text-sm font-editorial italic text-[#634F43] mt-1">Automated code documentation generation, AST parsing, and technical markdown export.</p>
         </div>
 
         <button
@@ -59,68 +59,68 @@ export function DocsStudio({ apiKey }: DocsStudioProps) {
             a.download = 'CODE_EXPLANATION.md';
             a.click();
           }}
-          className="px-4 py-2 bg-[#F4EFEB] border border-[#A68B78]/40 hover:border-[#164A40] text-xs font-mono text-[#164A40] hover:text-[#164A40] transition-colors flex items-center space-x-2 w-fit font-semibold"
+          className="px-4 py-2.5 bg-[#F4EFEB] border border-[#A68B78]/30 hover:border-[#164A40] text-xs font-sans font-semibold text-[#164A40] hover:text-[#164A40] transition-colors flex items-center space-x-2 w-fit"
         >
           <Download className="w-4 h-4 text-[#164A40]" />
-          <span>EXPORT MARKDOWN DOCS</span>
+          <span>Export markdown docs</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Input Pane */}
-        <div className="lg:col-span-6 bg-[#FDFBFC] border border-[#A68B78]/40 p-6 space-y-4 shadow-sm">
-          <form onSubmit={handleGenerateDocs} className="space-y-4 font-mono text-xs">
+        <div className="lg:col-span-6 bg-[#FDFBFC] border border-[#A68B78]/30 p-6 sm:p-8 space-y-5 shadow-sm">
+          <form onSubmit={handleGenerateDocs} className="space-y-4 font-sans text-xs">
             <div>
-              <label className="block text-[10px] text-[#634F43] uppercase mb-1 font-semibold">Target File Path</label>
+              <label className="block text-xs font-mono text-[#634F43] uppercase mb-1.5 font-medium">Target File Path</label>
               <input
                 type="text"
                 value={filePath}
                 onChange={(e) => setFilePath(e.target.value)}
-                className="w-full bg-[#F4EFEB] border border-[#A68B78]/40 px-3 py-2 text-xs font-mono text-[#201E1E] focus:outline-none focus:border-[#164A40]"
+                className="w-full bg-[#F4EFEB] border border-[#A68B78]/30 px-3.5 py-2.5 text-xs font-mono text-[#201E1E] focus:outline-none focus:border-[#164A40]"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] text-[#634F43] uppercase mb-1 font-semibold">Code Snippet Input</label>
+              <label className="block text-xs font-mono text-[#634F43] uppercase mb-1.5 font-medium">Code Snippet Input</label>
               <textarea
                 rows={12}
                 value={codeSnippet}
                 onChange={(e) => setCodeSnippet(e.target.value)}
-                className="w-full bg-[#F4EFEB] border border-[#A68B78]/40 p-3 text-xs font-mono text-[#164A40] font-semibold focus:outline-none focus:border-[#164A40]"
+                className="w-full bg-[#F4EFEB] border border-[#A68B78]/30 p-3.5 text-xs font-mono text-[#164A40] font-medium focus:outline-none focus:border-[#164A40]"
               />
             </div>
 
             <button
               type="submit"
               disabled={isExplaining}
-              className="w-full py-3.5 bg-[#164A40] hover:bg-[#0f362e] text-[#FDFBFC] hover:text-[#F7D3CC] font-bold text-xs font-mono tracking-wider transition-colors flex items-center justify-center space-x-2 shadow-sm"
+              className="w-full py-3.5 bg-[#164A40] hover:bg-[#0f362e] text-[#FDFBFC] hover:text-[#F7D3CC] font-sans font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-sm"
             >
               <Sparkles className="w-4 h-4 text-[#F7D3CC]" />
-              <span>{isExplaining ? 'PARSING AST WITH GEMINI...' : 'GENERATE AI DOCUMENTATION'}</span>
+              <span>{isExplaining ? 'Parsing AST with Gemini...' : 'Generate AI documentation'}</span>
             </button>
           </form>
         </div>
 
         {/* Right Explanation Output Pane */}
-        <div className="lg:col-span-6 bg-[#FDFBFC] border border-[#A68B78]/40 p-6 space-y-5 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#A68B78]/30 pb-3">
-            <h3 className="text-sm font-bold font-display text-[#164A40] uppercase flex items-center space-x-2">
+        <div className="lg:col-span-6 bg-[#FDFBFC] border border-[#A68B78]/30 p-6 sm:p-8 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#A68B78]/20 pb-4">
+            <h3 className="text-xl font-extrabold font-sans text-[#164A40] flex items-center space-x-2">
               <BookOpen className="w-4 h-4 text-[#164A40]" />
-              <span>GENERATED DOCUMENTATION</span>
+              <span>Generated documentation</span>
             </h3>
             <span className="text-xs font-mono text-[#164A40] font-bold">SCORE: {explanation?.complexityScore || 90}/100</span>
           </div>
 
-          <div className="bg-[#F4EFEB] border border-[#A68B78]/30 p-5 text-xs font-mono text-[#201E1E] space-y-4">
+          <div className="bg-[#F4EFEB] border border-[#A68B78]/25 p-6 text-xs text-[#201E1E] space-y-5">
             <div>
-              <span className="text-[#164A40] font-bold block mb-1 uppercase tracking-wider"># High-Level Architecture Overview</span>
-              <p className="text-[#634F43] leading-relaxed">{explanation?.explanation}</p>
+              <span className="text-[#164A40] font-bold font-editorial text-base block mb-2">High-Level Architecture Overview</span>
+              <p className="text-[#634F43] font-sans text-xs leading-relaxed">{explanation?.explanation}</p>
             </div>
 
             {explanation?.astBreakdown && (
               <div>
-                <span className="text-[#164A40] font-bold block mb-2 uppercase tracking-wider"># AST Structural Components</span>
-                <ul className="space-y-1 text-[#634F43]">
+                <span className="text-[#164A40] font-bold font-sans block mb-2 uppercase text-[10px] tracking-wider">AST Structural Components</span>
+                <ul className="space-y-1.5 text-[#634F43] font-mono text-xs">
                   {explanation.astBreakdown.map((item, idx) => (
                     <li key={idx} className="flex items-center space-x-2">
                       <span className="text-[#164A40] font-bold">›</span>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { 
   Shield, Lock, Menu, X 
 } from 'lucide-react';
@@ -52,9 +52,43 @@ export default function App() {
     loadHistory();
   }, [apiKey]);
 
+  // Scroll Position Observer: Synchronize Active Nav with Scroll Position
+  useEffect(() => {
+    const sectionIds = ['landing', 'overview', 'diff-studio', 'docs-studio', 'rag-studio', 'credentials'];
+    const observerOptions: IntersectionObserverInit = {
+      root: null,
+      rootMargin: '-25% 0px -35% 0px',
+      threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id.replace('section-', '');
+          setActiveTab(id);
+        }
+      });
+    }, observerOptions);
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(`section-${id}`);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const handleAuthenticate = (key: string) => {
     setApiKey(key);
     localStorage.setItem('sentinai_api_key', key);
+  };
+
+  const scrollToSection = (id: string) => {
+    setActiveTab(id);
+    const element = document.getElementById(`section-${id}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const navItems = [
@@ -70,55 +104,56 @@ export default function App() {
     <div className="min-h-screen bg-[#FDFBFC] text-[#201E1E] font-sans selection:bg-[#F7D3CC] selection:text-[#164A40] flex flex-col relative">
       
       {/* ========================================================================= */}
-      {/* DESKTOP RIGHT-SIDE VERTICAL EDITORIAL NAVIGATION RAIL                      */}
+      {/* DESKTOP RIGHT-SIDE VERTICAL EDITORIAL NAVIGATION RAIL (SEPARATE BUTTONS)   */}
       {/* ========================================================================= */}
-      <aside className="hidden lg:flex fixed right-0 top-0 bottom-0 w-[110px] nav-glass text-[#FDFBFC] flex-col justify-between items-center py-8 z-50 select-none shadow-2xl">
+      <aside className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-50 flex-col items-end space-y-6 select-none pointer-events-auto">
         
-        {/* Top: Brand Identity / Logo */}
-        <div 
-          onClick={() => setActiveTab('landing')}
-          className="flex flex-col items-center cursor-pointer group px-2 text-center"
+        {/* Top: Brand Identity / Logo Button */}
+        <button 
+          onClick={() => scrollToSection('landing')}
+          className="nav-glass-card px-3 py-2 flex items-center space-x-2 text-left cursor-pointer transition-colors"
+          title="Scroll to Top"
         >
-          <div className="w-9 h-9 bg-[#FDFBFC] text-[#164A40] flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
-            <Shield className="w-4 h-4" />
+          <div className="w-6 h-6 bg-[#FDFBFC] text-[#164A40] flex items-center justify-center shadow-sm">
+            <Shield className="w-3.5 h-3.5" />
           </div>
-          <span className="font-sans font-extrabold text-[10px] tracking-widest text-[#FDFBFC] uppercase mt-2.5 group-hover:text-[#F7D3CC] transition-colors">
-            SENTINAI
-          </span>
-          <span className="text-[9px] font-mono font-medium text-[#F7D3CC] tracking-wider mt-0.5">
-            v1.0
-          </span>
-        </div>
+          <div className="flex flex-col">
+            <span className="font-sans font-extrabold text-[9px] tracking-widest text-[#FDFBFC] uppercase">
+              SENTINAI
+            </span>
+            <span className="text-[8px] font-mono text-[#F7D3CC]">
+              v1.0
+            </span>
+          </div>
+        </button>
 
-        {/* Center: Editorial Vertical Navigation Items */}
-        <nav className="flex flex-col items-center space-y-6 my-auto w-full px-2">
+        {/* Center: Separate Independent Navigation Buttons (24-36px spacing) */}
+        <nav className="flex flex-col items-end space-y-5 my-auto w-full">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full py-2 px-1 flex flex-col items-center justify-center space-y-1 transition-all duration-300 relative group font-sans ${
+                onClick={() => scrollToSection(item.id)}
+                className={`w-[128px] px-4 py-3 nav-glass-card text-left relative transition-colors duration-150 flex flex-col justify-center space-y-0.5 ${
                   isActive
-                    ? 'text-[#F7D3CC]'
-                    : 'text-[#FDFBFC]/70 hover:text-[#F7D3CC]'
+                    ? 'bg-[#164A40]/95 border-[#F7D3CC]/60 text-[#F7D3CC]'
+                    : 'text-[#FDFBFC]/80 hover:text-[#F7D3CC]'
                 }`}
               >
                 {/* Active Indicator Accent Line on Right Edge */}
                 {isActive && (
-                  <motion.div 
-                    layoutId="activeNavIndicator"
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-7 bg-[#F7D3CC]"
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  />
+                  <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-[#F7D3CC]" />
                 )}
 
-                <span className="text-[10px] font-mono text-[#F7D3CC]/60 group-hover:text-[#F7D3CC] transition-colors">
+                <span className={`text-[10px] font-mono transition-colors ${
+                  isActive ? 'text-[#F7D3CC] font-bold' : 'text-[#F7D3CC]/70'
+                }`}>
                   {item.code}
                 </span>
 
-                <span className={`text-[11px] font-medium tracking-wide text-center leading-tight transition-colors ${
-                  isActive ? 'font-bold text-[#F7D3CC]' : 'text-[#FDFBFC]/80 group-hover:text-[#F7D3CC]'
+                <span className={`text-xs font-sans tracking-wide leading-tight transition-colors ${
+                  isActive ? 'font-bold text-[#F7D3CC]' : 'font-medium text-[#FDFBFC]'
                 }`}>
                   {item.label}
                 </span>
@@ -127,14 +162,11 @@ export default function App() {
           })}
         </nav>
 
-        {/* Bottom Controls & Telemetry */}
-        <div className="flex flex-col items-center space-y-4 px-2 w-full">
-          {/* Subtle Decorative Hairline */}
-          <div className="w-6 h-[1px] bg-[#FDFBFC]/20"></div>
-
-          {/* Health Status Indicator */}
-          <div className="flex flex-col items-center text-[9px] font-mono text-[#FDFBFC]/70">
-            <span className="flex h-1.5 w-1.5 relative mb-1">
+        {/* Bottom Controls & Telemetry Button */}
+        <div className="flex items-center space-x-2">
+          {/* Health Status Pill */}
+          <div className="nav-glass-card px-2.5 py-1.5 flex items-center space-x-2 text-[9px] font-mono text-[#FDFBFC]">
+            <span className="flex h-1.5 w-1.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F7D3CC] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#F7D3CC]"></span>
             </span>
@@ -145,7 +177,7 @@ export default function App() {
           <button
             onClick={() => setIsLockscreenOpen(true)}
             title={apiKey ? 'API Key Active' : 'Unlock Auth Session'}
-            className="w-8 h-8 bg-[#FDFBFC]/10 hover:bg-[#F7D3CC] border border-[#FDFBFC]/20 hover:border-[#F7D3CC] text-[#FDFBFC] hover:text-[#164A40] transition-colors flex items-center justify-center"
+            className="nav-glass-card w-8 h-8 flex items-center justify-center text-[#FDFBFC] hover:text-[#F7D3CC] transition-colors"
           >
             <Lock className="w-3.5 h-3.5" />
           </button>
@@ -156,7 +188,7 @@ export default function App() {
       {/* MOBILE / TABLET HEADER (< lg Viewports)                                  */}
       {/* ========================================================================= */}
       <header className="lg:hidden sticky top-0 z-40 bg-[#164A40] text-[#FDFBFC] border-b border-[#A68B78]/30 px-4 py-3.5 flex items-center justify-between shadow-md">
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
+        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => scrollToSection('landing')}>
           <div className="w-7 h-7 bg-[#FDFBFC] text-[#164A40] flex items-center justify-center">
             <Shield className="w-4 h-4" />
           </div>
@@ -201,10 +233,10 @@ export default function App() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveTab(item.id);
+                      scrollToSection(item.id);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`p-4 border text-left text-sm font-medium transition-all flex items-center justify-between ${
+                    className={`p-4 border text-left text-sm font-medium transition-colors flex items-center justify-between ${
                       isActive
                         ? 'bg-[#FDFBFC] text-[#164A40] border-[#F7D3CC] font-bold'
                         : 'bg-transparent border-[#A68B78]/30 text-[#FDFBFC] hover:bg-[#FDFBFC]/10'
@@ -229,64 +261,56 @@ export default function App() {
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* MAIN CONTENT BODY (Offset on Desktop by lg:pr-[110px] for Right Nav Rail) */}
+      {/* MAIN CONTINUOUS SCROLL BODY (All 6 Sections Stacked Vertically)            */}
       {/* ========================================================================= */}
-      <main className="flex-1 lg:pr-[110px] transition-all">
-        <AnimatePresence mode="wait">
-          {activeTab === 'landing' && (
-            <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <LandingPage
-                onOpenConsole={() => setIsLockscreenOpen(true)}
-                onNavigateTab={(tab) => setActiveTab(tab)}
-              />
-            </motion.div>
-          )}
+      <main className="flex-1 lg:pr-[160px] transition-all">
+        {/* Section 01: Overview (Landing Hero) */}
+        <section id="section-landing" className="min-h-screen flex flex-col justify-center border-b border-[#A68B78]/20">
+          <LandingPage
+            onOpenConsole={() => setIsLockscreenOpen(true)}
+            onNavigateTab={(tab) => scrollToSection(tab)}
+          />
+        </section>
 
-          {activeTab === 'overview' && (
-            <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <OverviewDashboard
-                history={reviewHistory}
-                isLoading={isLoadingHistory}
-                onRefresh={loadHistory}
-                onSelectReview={(rev) => {
-                  setSelectedReview(rev);
-                  setActiveTab('diff-studio');
-                }}
-              />
-            </motion.div>
-          )}
+        {/* Section 02: Dashboard (Telemetry & Review Log) */}
+        <section id="section-overview" className="min-h-screen py-16 flex flex-col justify-center border-b border-[#A68B78]/20">
+          <OverviewDashboard
+            history={reviewHistory}
+            isLoading={isLoadingHistory}
+            onRefresh={loadHistory}
+            onSelectReview={(rev) => {
+              setSelectedReview(rev);
+              scrollToSection('diff-studio');
+            }}
+          />
+        </section>
 
-          {activeTab === 'diff-studio' && (
-            <motion.div key="diff-studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <PRDiffStudio
-                apiKey={apiKey}
-                selectedReview={selectedReview}
-                onReviewCreated={(newRev) => {
-                  setReviewHistory([newRev, ...reviewHistory]);
-                  setSelectedReview(newRev);
-                }}
-              />
-            </motion.div>
-          )}
+        {/* Section 03: PR Studio (Code Review Diff & Findings) */}
+        <section id="section-diff-studio" className="min-h-screen py-16 flex flex-col justify-center border-b border-[#A68B78]/20">
+          <PRDiffStudio
+            apiKey={apiKey}
+            selectedReview={selectedReview}
+            onReviewCreated={(newRev) => {
+              setReviewHistory([newRev, ...reviewHistory]);
+              setSelectedReview(newRev);
+            }}
+          />
+        </section>
 
-          {activeTab === 'docs-studio' && (
-            <motion.div key="docs-studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <DocsStudio apiKey={apiKey} />
-            </motion.div>
-          )}
+        {/* Section 04: Docs (AI Documentation & AST Parser) */}
+        <section id="section-docs-studio" className="min-h-screen py-16 flex flex-col justify-center border-b border-[#A68B78]/20">
+          <DocsStudio apiKey={apiKey} />
+        </section>
 
-          {activeTab === 'rag-studio' && (
-            <motion.div key="rag-studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <RAGStudio apiKey={apiKey} />
-            </motion.div>
-          )}
+        {/* Section 05: RAG Context (PgVector Knowledge Store) */}
+        <section id="section-rag-studio" className="min-h-screen py-16 flex flex-col justify-center border-b border-[#A68B78]/20">
+          <RAGStudio apiKey={apiKey} />
+        </section>
 
-          {activeTab === 'credentials' && (
-            <motion.div key="credentials" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <CredentialsManager apiKey={apiKey} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Section 06: Governance (Credentials Manager & API Keys) */}
+        <section id="section-credentials" className="min-h-screen py-16 flex flex-col justify-center">
+          <CredentialsManager apiKey={apiKey} />
+        </section>
       </main>
 
       {/* Console Lockscreen Modal */}
@@ -297,8 +321,8 @@ export default function App() {
         currentApiKey={apiKey}
       />
 
-      {/* Footer */}
-      <footer className="lg:pr-[110px] border-t border-[#A68B78]/30 bg-[#164A40] text-[#FDFBFC] px-8 py-8 text-center text-xs font-sans">
+      {/* Editorial Footer */}
+      <footer className="lg:pr-[160px] border-t border-[#A68B78]/30 bg-[#164A40] text-[#FDFBFC] px-8 py-8 text-center text-xs font-sans">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[#FDFBFC]/80">
           <span>SentinAI Autonomous Code Security Agent &copy; {new Date().getFullYear()}</span>
           <span className="font-editorial italic text-sm text-[#F7D3CC]">Precision code intelligence & editorial aesthetics</span>

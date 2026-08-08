@@ -56,7 +56,7 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
   };
 
   return (
-    <div className="p-6 sm:p-10 space-y-8 max-w-6xl mx-auto bg-[#FDFBFC] text-[#201E1E] font-sans">
+    <div className="p-6 sm:p-10 space-y-8 max-w-6xl mx-auto bg-white text-[#201E1E] font-sans">
       {/* Top Header */}
       <div className="border-b border-[#A68B78]/25 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -72,7 +72,7 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Repository Indexing Box */}
-        <div className="lg:col-span-5 bg-[#FDFBFC] border border-[#A68B78]/30 p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="lg:col-span-5 bg-white border border-[#A68B78]/30 p-6 sm:p-8 space-y-6 shadow-sm">
           <h3 className="text-xl font-extrabold font-sans text-[#164A40] flex items-center space-x-2 border-b border-[#A68B78]/20 pb-4">
             <RefreshCw className="w-4 h-4 text-[#164A40]" />
             <span>Re-index codebase</span>
@@ -101,7 +101,7 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
         </div>
 
         {/* Vector Search Inspector */}
-        <div className="lg:col-span-7 bg-[#FDFBFC] border border-[#A68B78]/30 p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="lg:col-span-7 bg-white border border-[#A68B78]/30 p-6 sm:p-8 space-y-6 shadow-sm overflow-hidden">
           <h3 className="text-xl font-extrabold font-sans text-[#164A40] flex items-center space-x-2 border-b border-[#A68B78]/20 pb-4">
             <Search className="w-4 h-4 text-[#164A40]" />
             <span>Vector search inspector</span>
@@ -127,10 +127,12 @@ export function RAGStudio({ apiKey }: RAGStudioProps) {
           {/* Search Result Chunks */}
           <div className="space-y-4">
             {searchResults.map((res, i) => (
-              <div key={i} className="p-4 bg-[#F4EFEB] border border-[#A68B78]/25 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#164A40] font-mono font-bold">{res.filePath}</span>
-                  <span className="px-2.5 py-0.5 bg-[#164A40] text-[#F7D3CC] font-mono font-bold text-[10px]">
+              <div key={i} className="p-4 bg-[#F4EFEB] border border-[#A68B78]/25 space-y-2 font-sans overflow-hidden">
+                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 text-xs min-w-0">
+                  <span className="text-[#164A40] font-mono font-bold text-xs truncate max-w-full sm:max-w-[70%]" title={res.filePath}>
+                    {res.filePath}
+                  </span>
+                  <span className="shrink-0 px-2.5 py-1 bg-[#164A40] text-[#F7D3CC] font-mono font-bold text-[10px] tracking-wider">
                     COSINE SIM: {(res.score * 100).toFixed(1)}%
                   </span>
                 </div>

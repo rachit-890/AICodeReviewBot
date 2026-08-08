@@ -101,7 +101,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FDFBFC] text-[#201E1E] font-sans selection:bg-[#F7D3CC] selection:text-[#164A40] flex flex-col relative">
+    <div className="min-h-screen bg-white text-[#201E1E] font-sans selection:bg-[#F7D3CC] selection:text-[#164A40] flex flex-col relative">
       
       {/* ========================================================================= */}
       {/* DESKTOP RIGHT-SIDE VERTICAL EDITORIAL NAVIGATION RAIL (SEPARATE BUTTONS)   */}

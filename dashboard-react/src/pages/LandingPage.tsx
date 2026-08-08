@@ -4,7 +4,6 @@ import {
   Shield, Terminal, Sparkles, ArrowRight, GitPullRequest, 
   Database, Lock, CheckCircle2, Zap
 } from 'lucide-react';
-import { Hero3DCanvas } from '../components/Hero3DCanvas';
 
 interface LandingPageProps {
   onOpenConsole: () => void;
@@ -16,10 +15,7 @@ export function LandingPage({ onOpenConsole, onNavigateTab }: LandingPageProps) 
   const [demoSha, setDemoSha] = useState('e731e5d7178d72272eeaeb15236705b8a4133254');
 
   return (
-    <div className="relative min-h-screen bg-[#FDFBFC] text-[#201E1E] overflow-hidden">
-      {/* 3D Particle Canvas Background */}
-      <Hero3DCanvas />
-
+    <div className="relative min-h-screen bg-white text-[#201E1E] overflow-hidden">
       {/* Hero Section - Editorial Asymmetric Layout */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pt-12 pb-20">
         

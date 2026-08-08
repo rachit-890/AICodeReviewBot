@@ -53,7 +53,7 @@ def get_llm():
         # Fallback to demo key if unconfigured
         api_key = "dummy_key"
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash",
         google_api_key=api_key,
         temperature=0.2
     )

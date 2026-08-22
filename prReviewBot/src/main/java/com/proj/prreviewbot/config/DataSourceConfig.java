@@ -1,0 +1,64 @@
+package com.proj.prreviewbot.config;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import javax.sql.DataSource;
+
+/**
+ * Custom DataSource configuration for Spring Boot.
+ * Sanitizes and normalizes JDBC URLs (e.g. converting postgres:// or postgresql:// to jdbc:postgresql://)
+ * provided by cloud platforms like Render or Heroku.
+ */
+@Configuration
+public class DataSourceConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
+
+    @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/codereviewdb}")
+    private String rawUrl;
+
+    @Value("${spring.datasource.username:rachit}")
+    private String username;
+
+    @Value("${spring.datasource.password:rachit123}")
+    private String password;
+
+    @Value("${spring.datasource.driver-class-name:org.postgresql.Driver}")
+    private String driverClassName;
+
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        String url = rawUrl.trim();
+
+        // Convert postgres:// or postgresql:// scheme to jdbc:postgresql:// if provided by Render/Cloud providers
+        if (url.startsWith("postgres://")) {
+            url = "jdbc:postgresql://" + url.substring("postgres://".length());
+        } else if (url.startsWith("postgresql://")) {
+            url = "jdbc:postgresql://" + url.substring("postgresql://".length());
+        } else if (!url.startsWith("jdbc:")) {
+            url = "jdbc:postgresql://" + url;
+        }
+
+        log.info("Initializing HikariDataSource with normalized URL: {}", sanitizeUrl(url));
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setDriverClassName(driverClassName);
+
+        return new HikariDataSource(config);
+    }
+
+    private String sanitizeUrl(String url) {
+        return url.replaceAll(":[^/@]+@", ":****@");
+    }
+}

@@ -84,6 +84,15 @@ public class EmbeddingStoreConfig {
         if (customPort > 0) dbPort = customPort;
         if (customDatabase != null && !customDatabase.isEmpty()) dbName = customDatabase;
 
+        if (dbHost != null && dbHost.matches("^dpg-[a-zA-Z0-9]+$")) {
+            String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
+            dbHost = dbHost + "." + regionDomain;
+        }
+
+        if (dbName != null && dbName.contains("?")) {
+            dbName = dbName.substring(0, dbName.indexOf("?"));
+        }
+
         log.info("Configuring PgVectorEmbeddingStore for host '{}', port {}, database '{}'", dbHost, dbPort, dbName);
 
         try {

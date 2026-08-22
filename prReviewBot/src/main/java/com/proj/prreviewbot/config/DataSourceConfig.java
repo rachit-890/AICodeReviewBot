@@ -10,11 +10,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Custom DataSource configuration for Spring Boot.
  * Sanitizes and normalizes JDBC URLs (e.g. converting postgres:// or postgresql:// to jdbc:postgresql://)
- * provided by cloud platforms like Render or Heroku.
+ * and resolves Render internal short hostnames (dpg-xxx) to FQDNs for cloud container compatibility.
  */
 @Configuration
 public class DataSourceConfig {
@@ -47,6 +49,9 @@ public class DataSourceConfig {
             url = "jdbc:postgresql://" + url;
         }
 
+        // Expand bare Render internal database hostnames (e.g., dpg-d94a4imq1p3s73b6qoj0-a -> dpg-d94a4imq1p3s73b6qoj0-a.singapore-postgres.render.com)
+        url = expandRenderHostname(url);
+
         log.info("Initializing HikariDataSource with normalized URL: {}", sanitizeUrl(url));
 
         HikariConfig config = new HikariConfig();
@@ -56,6 +61,20 @@ public class DataSourceConfig {
         config.setDriverClassName(driverClassName);
 
         return new HikariDataSource(config);
+    }
+
+    private String expandRenderHostname(String url) {
+        // Matches short Render hostnames starting with dpg- without domain extension
+        Pattern pattern = Pattern.compile("(@|//)(dpg-[a-zA-Z0-9]+)([:/?]|$)");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            String shortHost = matcher.group(2);
+            String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
+            String fullHost = shortHost + "." + regionDomain;
+            log.info("Detected Render internal short host '{}'. Expanding to FQDN '{}'", shortHost, fullHost);
+            url = matcher.replaceFirst(matcher.group(1) + fullHost + matcher.group(3));
+        }
+        return url;
     }
 
     private String sanitizeUrl(String url) {

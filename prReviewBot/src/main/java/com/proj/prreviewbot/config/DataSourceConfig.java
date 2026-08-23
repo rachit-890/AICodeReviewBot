@@ -38,22 +38,11 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        // Resolve raw URL: prioritize DATABASE_URL (Render default), SPRING_DATASOURCE_URL, POSTGRES_URL
-        String rawUrl = resolveEnv("DATABASE_URL", "SPRING_DATASOURCE_URL", "POSTGRES_URL");
-        if (rawUrl == null || rawUrl.trim().isEmpty()) {
-            rawUrl = defaultUrl;
-        }
+        String rawUrl = selectBestConnectionUrl();
         String url = rawUrl.trim();
 
-        String activeUser = resolveEnv("SPRING_DATASOURCE_USERNAME", "POSTGRES_USER", "POSTGRES_USERNAME", "DB_USERNAME", "DATABASE_USERNAME");
-        if (activeUser == null || activeUser.isEmpty()) {
-            activeUser = defaultUsername;
-        }
-
-        String activePass = resolveEnv("SPRING_DATASOURCE_PASSWORD", "POSTGRES_PASSWORD", "DB_PASSWORD", "DATABASE_PASSWORD");
-        if (activePass == null || activePass.isEmpty()) {
-            activePass = defaultPassword;
-        }
+        String activeUser = defaultUsername;
+        String activePass = defaultPassword;
 
         // 1. Extract embedded credentials from URL if present (e.g. postgres://user:password@host...)
         Pattern credPattern = Pattern.compile("(?i)^(?:jdbc:)?postgres(?:ql)?://([^:]+):([^@]+)@(.+)$");
@@ -62,7 +51,13 @@ public class DataSourceConfig {
             activeUser = credMatcher.group(1);
             activePass = credMatcher.group(2);
             url = "postgres://" + credMatcher.group(3);
-            log.info("Extracted embedded database username '{}' from connection URL", activeUser);
+            log.info("Extracted embedded username '{}' and password (length={}) from connection URL", activeUser, activePass.length());
+        } else {
+            String envUser = resolveEnv("SPRING_DATASOURCE_USERNAME", "POSTGRES_USER", "POSTGRES_USERNAME", "DB_USERNAME");
+            if (envUser != null && !envUser.isEmpty()) activeUser = envUser;
+
+            String envPass = resolveEnv("SPRING_DATASOURCE_PASSWORD", "POSTGRES_PASSWORD", "DB_PASSWORD");
+            if (envPass != null && !envPass.isEmpty()) activePass = envPass;
         }
 
         // 2. Convert postgres:// or postgresql:// scheme to jdbc:postgresql://
@@ -88,6 +83,30 @@ public class DataSourceConfig {
         return new HikariDataSource(config);
     }
 
+    private String selectBestConnectionUrl() {
+        String[] candidates = {
+            System.getenv("DATABASE_URL"),
+            System.getenv("SPRING_DATASOURCE_URL"),
+            System.getenv("POSTGRES_URL")
+        };
+
+        // 1. Scan for candidate containing embedded credentials (@)
+        for (String candidate : candidates) {
+            if (candidate != null && candidate.contains("@") && !candidate.trim().isEmpty()) {
+                return candidate.trim();
+            }
+        }
+
+        // 2. Scan for any non-empty candidate
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.trim().isEmpty()) {
+                return candidate.trim();
+            }
+        }
+
+        return defaultUrl;
+    }
+
     private String expandRenderHostname(String url) {
         // Matches short Render hostnames starting with dpg- without domain extension
         Pattern pattern = Pattern.compile("(@|//)(dpg-[a-zA-Z0-9-]+)([:/?]|$)");
@@ -102,14 +121,14 @@ public class DataSourceConfig {
             }
         }
 
-        // Ensure sslmode parameter is present for Render databases (sslmode=prefer allows fallback if SSL handshake drops)
+        // Ensure sslmode=require is present when connecting to Render databases
         if ((url.contains("render.com") || url.contains("dpg-")) && !url.contains("sslmode=")) {
             if (url.contains("?")) {
-                url = url + "&sslmode=prefer";
+                url = url + "&sslmode=require";
             } else {
-                url = url + "?sslmode=prefer";
+                url = url + "?sslmode=require";
             }
-            log.info("Appended sslmode=prefer to Render database URL");
+            log.info("Appended sslmode=require to Render database URL");
         }
 
         return url;

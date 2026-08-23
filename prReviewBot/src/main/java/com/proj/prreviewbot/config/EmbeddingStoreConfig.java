@@ -63,10 +63,7 @@ public class EmbeddingStoreConfig {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
-        String activeUrl = resolveEnv("DATABASE_URL", "SPRING_DATASOURCE_URL", "POSTGRES_URL");
-        if (activeUrl == null || activeUrl.isEmpty()) {
-            activeUrl = defaultDatasourceUrl;
-        }
+        String activeUrl = selectBestConnectionUrl();
 
         String dbHost = "localhost";
         int dbPort = 5432;
@@ -119,6 +116,30 @@ public class EmbeddingStoreConfig {
                     dbHost, dbPort, dbName, e.getMessage());
             return new FallbackEmbeddingStore();
         }
+    }
+
+    private String selectBestConnectionUrl() {
+        String[] candidates = {
+            System.getenv("DATABASE_URL"),
+            System.getenv("SPRING_DATASOURCE_URL"),
+            System.getenv("POSTGRES_URL")
+        };
+
+        // 1. Scan for candidate containing embedded credentials (@)
+        for (String candidate : candidates) {
+            if (candidate != null && candidate.contains("@") && !candidate.trim().isEmpty()) {
+                return candidate.trim();
+            }
+        }
+
+        // 2. Scan for any non-empty candidate
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.trim().isEmpty()) {
+                return candidate.trim();
+            }
+        }
+
+        return defaultDatasourceUrl;
     }
 
     private String resolveEnv(String... envVarNames) {

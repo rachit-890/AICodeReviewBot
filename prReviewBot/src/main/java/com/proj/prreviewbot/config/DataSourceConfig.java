@@ -64,16 +64,29 @@ public class DataSourceConfig {
     }
 
     private String expandRenderHostname(String url) {
-        // Matches short Render hostnames starting with dpg- without domain extension
-        Pattern pattern = Pattern.compile("(@|//)(dpg-[a-zA-Z0-9]+)([:/?]|$)");
+        // Matches short Render hostnames starting with dpg- (including hyphens like dpg-d94a4imq1p3s73b6qoj0-a) without domain extension
+        Pattern pattern = Pattern.compile("(@|//)(dpg-[a-zA-Z0-9-]+)([:/?]|$)");
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
             String shortHost = matcher.group(2);
-            String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
-            String fullHost = shortHost + "." + regionDomain;
-            log.info("Detected Render internal short host '{}'. Expanding to FQDN '{}'", shortHost, fullHost);
-            url = matcher.replaceFirst(matcher.group(1) + fullHost + matcher.group(3));
+            if (!shortHost.contains(".")) {
+                String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
+                String fullHost = shortHost + "." + regionDomain;
+                log.info("Detected Render internal short host '{}'. Expanding to FQDN '{}'", shortHost, fullHost);
+                url = matcher.replaceFirst(matcher.group(1) + fullHost + matcher.group(3));
+            }
         }
+
+        // Ensure sslmode=require is present when connecting to Render databases
+        if ((url.contains("render.com") || url.contains("dpg-")) && !url.contains("sslmode=")) {
+            if (url.contains("?")) {
+                url = url + "&sslmode=require";
+            } else {
+                url = url + "?sslmode=require";
+            }
+            log.info("Appended sslmode=require to Render database URL");
+        }
+
         return url;
     }
 

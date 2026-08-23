@@ -84,7 +84,7 @@ public class EmbeddingStoreConfig {
         if (customPort > 0) dbPort = customPort;
         if (customDatabase != null && !customDatabase.isEmpty()) dbName = customDatabase;
 
-        if (dbHost != null && dbHost.matches("^dpg-[a-zA-Z0-9]+$")) {
+        if (dbHost != null && dbHost.matches("^dpg-[a-zA-Z0-9-]+$")) {
             String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
             dbHost = dbHost + "." + regionDomain;
         }

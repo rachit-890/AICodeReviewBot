@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Configuration class for LangChain4j PgVectorEmbeddingStore and Google Gemini EmbeddingModel.
  * 
- * Extracts host, port, database, user, and password from spring.datasource.url
+ * Extracts host, port, database, user, and password from environment/spring.datasource.url
  * to support seamless deployment on cloud platforms like Render.
  * Includes a resilient fallback store if vector database connection fails on startup.
  */
@@ -35,13 +35,13 @@ public class EmbeddingStoreConfig {
     private static final Logger log = LoggerFactory.getLogger(EmbeddingStoreConfig.class);
 
     @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/codereviewdb}")
-    private String datasourceUrl;
+    private String defaultDatasourceUrl;
 
     @Value("${spring.datasource.username:rachit}")
-    private String datasourceUser;
+    private String defaultDatasourceUser;
 
     @Value("${spring.datasource.password:rachit123}")
-    private String datasourcePassword;
+    private String defaultDatasourcePassword;
 
     @Value("${langchain4j.pgvector.host:}")
     private String customHost;
@@ -63,14 +63,23 @@ public class EmbeddingStoreConfig {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
+        String activeUrl = resolveEnv("DATABASE_URL", "SPRING_DATASOURCE_URL", "POSTGRES_URL");
+        if (activeUrl == null || activeUrl.isEmpty()) {
+            activeUrl = defaultDatasourceUrl;
+        }
+
         String dbHost = "localhost";
         int dbPort = 5432;
         String dbName = "codereviewdb";
-        String dbUser = datasourceUser;
-        String dbPass = datasourcePassword;
+
+        String dbUser = resolveEnv("SPRING_DATASOURCE_USERNAME", "POSTGRES_USER", "POSTGRES_USERNAME", "DB_USERNAME");
+        if (dbUser == null || dbUser.isEmpty()) dbUser = defaultDatasourceUser;
+
+        String dbPass = resolveEnv("SPRING_DATASOURCE_PASSWORD", "POSTGRES_PASSWORD", "DB_PASSWORD");
+        if (dbPass == null || dbPass.isEmpty()) dbPass = defaultDatasourcePassword;
 
         Pattern pattern = Pattern.compile("(?:jdbc:)?postgresql://(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\\d+))?/([^?]+)");
-        Matcher matcher = pattern.matcher(datasourceUrl);
+        Matcher matcher = pattern.matcher(activeUrl);
 
         if (matcher.find()) {
             if (matcher.group(1) != null) dbUser = matcher.group(1);
@@ -93,7 +102,7 @@ public class EmbeddingStoreConfig {
             dbName = dbName.substring(0, dbName.indexOf("?"));
         }
 
-        log.info("Configuring PgVectorEmbeddingStore for host '{}', port {}, database '{}'", dbHost, dbPort, dbName);
+        log.info("Configuring PgVectorEmbeddingStore for host '{}', port {}, database '{}', user '{}'", dbHost, dbPort, dbName, dbUser);
 
         try {
             return PgVectorEmbeddingStore.builder()
@@ -110,6 +119,16 @@ public class EmbeddingStoreConfig {
                     dbHost, dbPort, dbName, e.getMessage());
             return new FallbackEmbeddingStore();
         }
+    }
+
+    private String resolveEnv(String... envVarNames) {
+        for (String varName : envVarNames) {
+            String val = System.getenv(varName);
+            if (val != null && !val.trim().isEmpty()) {
+                return val.trim();
+            }
+        }
+        return null;
     }
 
     @Bean

@@ -24,7 +24,7 @@ public class DataSourceConfig {
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
     @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/codereviewdb}")
-    private String rawUrl;
+    private String defaultUrl;
 
     @Value("${spring.datasource.username:rachit}")
     private String defaultUsername;
@@ -38,18 +38,30 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
+        // Resolve raw URL: prioritize DATABASE_URL (Render default), SPRING_DATASOURCE_URL, POSTGRES_URL
+        String rawUrl = resolveEnv("DATABASE_URL", "SPRING_DATASOURCE_URL", "POSTGRES_URL");
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            rawUrl = defaultUrl;
+        }
         String url = rawUrl.trim();
-        String activeUser = defaultUsername;
-        String activePass = defaultPassword;
 
-        // 1. Extract embedded credentials (e.g., postgres://user:password@host...) if present in URL
+        String activeUser = resolveEnv("SPRING_DATASOURCE_USERNAME", "POSTGRES_USER", "POSTGRES_USERNAME", "DB_USERNAME", "DATABASE_USERNAME");
+        if (activeUser == null || activeUser.isEmpty()) {
+            activeUser = defaultUsername;
+        }
+
+        String activePass = resolveEnv("SPRING_DATASOURCE_PASSWORD", "POSTGRES_PASSWORD", "DB_PASSWORD", "DATABASE_PASSWORD");
+        if (activePass == null || activePass.isEmpty()) {
+            activePass = defaultPassword;
+        }
+
+        // 1. Extract embedded credentials from URL if present (e.g. postgres://user:password@host...)
         Pattern credPattern = Pattern.compile("(?i)^(?:jdbc:)?postgres(?:ql)?://([^:]+):([^@]+)@(.+)$");
         Matcher credMatcher = credPattern.matcher(url);
         if (credMatcher.find()) {
             activeUser = credMatcher.group(1);
             activePass = credMatcher.group(2);
-            String restOfUrl = credMatcher.group(3);
-            url = "postgres://" + restOfUrl;
+            url = "postgres://" + credMatcher.group(3);
             log.info("Extracted embedded database username '{}' from connection URL", activeUser);
         }
 
@@ -65,7 +77,7 @@ public class DataSourceConfig {
         // 3. Expand bare Render internal database hostnames
         url = expandRenderHostname(url);
 
-        log.info("Initializing HikariDataSource with normalized URL: {}", sanitizeUrl(url));
+        log.info("Initializing HikariDataSource for user '{}' with URL: {}", activeUser, sanitizeUrl(url));
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
@@ -90,17 +102,27 @@ public class DataSourceConfig {
             }
         }
 
-        // Ensure sslmode=require is present when connecting to Render databases
+        // Ensure sslmode parameter is present for Render databases (sslmode=prefer allows fallback if SSL handshake drops)
         if ((url.contains("render.com") || url.contains("dpg-")) && !url.contains("sslmode=")) {
             if (url.contains("?")) {
-                url = url + "&sslmode=require";
+                url = url + "&sslmode=prefer";
             } else {
-                url = url + "?sslmode=require";
+                url = url + "?sslmode=prefer";
             }
-            log.info("Appended sslmode=require to Render database URL");
+            log.info("Appended sslmode=prefer to Render database URL");
         }
 
         return url;
+    }
+
+    private String resolveEnv(String... envVarNames) {
+        for (String varName : envVarNames) {
+            String val = System.getenv(varName);
+            if (val != null && !val.trim().isEmpty()) {
+                return val.trim();
+            }
+        }
+        return null;
     }
 
     private String sanitizeUrl(String url) {

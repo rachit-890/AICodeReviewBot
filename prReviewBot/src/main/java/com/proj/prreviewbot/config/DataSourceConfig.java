@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 /**
  * Custom DataSource configuration for Spring Boot.
- * Sanitizes and normalizes JDBC URLs (e.g. converting postgres:// or postgresql:// to jdbc:postgresql://),
- * extracts embedded credentials from cloud database URLs, and resolves Render hostnames.
+ * Normalizes JDBC URLs, safely extracts credentials (handling '@' in passwords),
+ * validates Render host types (internal vs external FQDN), and configures HikariCP.
  */
 @Configuration
 public class DataSourceConfig {
@@ -44,14 +44,15 @@ public class DataSourceConfig {
         String activeUser = defaultUsername;
         String activePass = defaultPassword;
 
-        // 1. Extract embedded credentials from URL if present (e.g. postgres://user:password@host...)
-        Pattern credPattern = Pattern.compile("(?i)^(?:jdbc:)?postgres(?:ql)?://([^:]+):([^@]+)@(.+)$");
+        // 1. Extract embedded credentials, matching greedily until the last '@' before hostname to handle '@' in passwords
+        Pattern credPattern = Pattern.compile("(?i)^(?:jdbc:)?postgres(?:ql)?://([^:]+):(.+)@([^/@]+)(/.*)?$");
         Matcher credMatcher = credPattern.matcher(url);
         if (credMatcher.find()) {
             activeUser = credMatcher.group(1);
             activePass = credMatcher.group(2);
-            url = "postgres://" + credMatcher.group(3);
-            log.info("Extracted embedded username '{}' and password (length={}) from connection URL", activeUser, activePass.length());
+            String hostAndPath = credMatcher.group(3) + (credMatcher.group(4) != null ? credMatcher.group(4) : "");
+            url = "postgres://" + hostAndPath;
+            log.info("Extracted embedded database username '{}' from connection URL", activeUser);
         } else {
             String envUser = resolveEnv("SPRING_DATASOURCE_USERNAME", "POSTGRES_USER", "POSTGRES_USERNAME", "DB_USERNAME");
             if (envUser != null && !envUser.isEmpty()) activeUser = envUser;
@@ -69,8 +70,8 @@ public class DataSourceConfig {
             url = "jdbc:postgresql://" + url;
         }
 
-        // 3. Expand bare Render internal database hostnames
-        url = expandRenderHostname(url);
+        // 3. Process Render database host validation and SSL requirements
+        url = processRenderUrl(url);
 
         log.info("Initializing HikariDataSource for user '{}' with URL: {}", activeUser, sanitizeUrl(url));
 
@@ -107,28 +108,34 @@ public class DataSourceConfig {
         return defaultUrl;
     }
 
-    private String expandRenderHostname(String url) {
-        // Matches short Render hostnames starting with dpg- without domain extension
-        Pattern pattern = Pattern.compile("(@|//)(dpg-[a-zA-Z0-9-]+)([:/?]|$)");
-        Matcher matcher = pattern.matcher(url);
-        if (matcher.find()) {
-            String shortHost = matcher.group(2);
-            if (!shortHost.contains(".")) {
-                String regionDomain = System.getenv().getOrDefault("RENDER_POSTGRES_DOMAIN", "singapore-postgres.render.com");
-                String fullHost = shortHost + "." + regionDomain;
-                log.info("Detected Render internal short host '{}'. Expanding to FQDN '{}'", shortHost, fullHost);
-                url = matcher.replaceFirst(matcher.group(1) + fullHost + matcher.group(3));
-            }
-        }
+    private String processRenderUrl(String url) {
+        Pattern hostPattern = Pattern.compile("(?i)^jdbc:postgresql://([^:/?]+)(?::\\d+)?(?:/.*)?$");
+        Matcher matcher = hostPattern.matcher(url);
 
-        // Ensure sslmode=require is present when connecting to Render databases
-        if ((url.contains("render.com") || url.contains("dpg-")) && !url.contains("sslmode=")) {
-            if (url.contains("?")) {
-                url = url + "&sslmode=require";
-            } else {
-                url = url + "?sslmode=require";
+        if (matcher.find()) {
+            String host = matcher.group(1);
+
+            // Fail fast if a bare internal Render hostname (no dot) is provided
+            if (host.matches("^dpg-[a-zA-Z0-9-]+$") && !host.contains(".")) {
+                throw new IllegalStateException(
+                    "Invalid Render Database configuration: An internal-format host ('" + host + "') was provided. " +
+                    "Render internal hostnames cannot be resolved outside their internal network or guessed into FQDNs. " +
+                    "To fix this: (a) If your web service and database are in the same Render region, use the Internal Connection String unmodified with SSL disabled, or " +
+                    "(b) If connecting across regions or externally, use Render's External Database URL (e.g. 'dpg-xxxx-a.<region>-postgres.render.com') in your environment variables."
+                );
             }
-            log.info("Appended sslmode=require to Render database URL");
+
+            // Only append sslmode=require if host is a fully-qualified external Render host (contains a dot)
+            if ((host.contains("render.com") || host.startsWith("dpg-")) && host.contains(".")) {
+                if (!url.contains("sslmode=")) {
+                    if (url.contains("?")) {
+                        url = url + "&sslmode=require";
+                    } else {
+                        url = url + "?sslmode=require";
+                    }
+                    log.info("Appended sslmode=require to external Render database URL");
+                }
+            }
         }
 
         return url;

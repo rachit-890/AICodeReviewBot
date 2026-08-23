@@ -1,194 +1,302 @@
-# <p align="center">🤖 SentinAI — Autonomous Code Security & PR Review System</p>
-<p align="center">
-  <strong>An enterprise-grade, AI-powered code auditing system featuring Google Gemini 2.5 Pro analysis, PgVector 768-dimension RAG knowledge retrieval, zero-trust API governance, and a high-contrast technical minimalist console.</strong>
-</p>
+# SentinAI — AI-Powered Automated Code Review & RAG Platform
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Hanken+Grotesk&size=22&pause=1000&color=2DD4BF&center=true&vCenter=true&width=550&height=40&lines=Automated+PR+Vulnerability+Auditing;PgVector+768-Dim+RAG+Store;Zero-Trust+API+Key+Governance;SentinAI+High-Contrast+Console" alt="Typing SVG" />
-</p>
+SentinAI (AICodeReviewBot) is an enterprise-grade automated code review platform designed to streamline pull request evaluations, conduct multi-agent security and performance audits, perform retrieval-augmented generation (RAG) over entire codebases, and auto-generate developer documentation.
 
-<p align="center">
-  <a href="https://github.com/rachit-890/AICodeReviewBot/releases"><img src="https://img.shields.io/badge/version-2.1.0-2dd4bf?style=for-the-badge&logo=git&logoColor=black" alt="Version" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00574d?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/rachit-890/AICodeReviewBot/actions"><img src="https://img.shields.io/github/actions/workflow/status/rachit-890/AICodeReviewBot/deploy.yml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white" alt="Build Status" /></a>
-  <a href="https://github.com/rachit-890/AICodeReviewBot/stargazers"><img src="https://img.shields.io/github/stars/rachit-890/AICodeReviewBot?style=for-the-badge&logo=github&color=yellow" alt="Stars" /></a>
-</p>
+![SentinAI Developer Dashboard](docs/images/sentinai_dashboard_preview.png)
 
 ---
 
-## 🎨 Project Overview & UI Redesign
+## Architecture Overview
 
-**SentinAI** has been completely overhauled with a high-contrast, technical minimalist interface based on **Google Stitch Project `7985737267659199492`** (*SentinAI Intelligence System*). The interface features a dark obsidian background (`#0e1513`), cyber teal primary accents (`#2dd4bf`), hairline-border containers (`#3c4a46`), and a 60fps 3D particle hero canvas.
-
-<p align="center">
-  <a href="https://prreviewbot-8m3j.onrender.com"><img src="https://img.shields.io/badge/🚀%20Live%20Backend-Render-2dd4bf?style=for-the-badge" alt="Live Backend" /></a>
-  <a href="https://aicode-review-bot.vercel.app"><img src="https://img.shields.io/badge/⚡%20Live%20Frontend-Vercel-57f1db?style=for-the-badge" alt="Live Frontend" /></a>
-</p>
-
----
-
-## 📍 Table of Contents
-
-- [📖 About the Project](#-about-the-project)
-- [⚡ Features](#-features)
-- [🏗️ Architecture](#-architecture)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [📂 Folder Structure](#-folder-structure)
-- [📥 Installation & Setup](#-installation--setup)
-- [🔑 Environment Variables](#-environment-variables)
-- [🏃 Running Locally](#-running-locally)
-- [🐳 Docker Setup](#-docker-setup)
-- [🔌 API Documentation](#-api-documentation)
-- [🔐 Authentication & Zero-Trust Governance](#-authentication--zero-trust-governance)
-- [🧠 RAG & Vector Knowledge Base](#-rag--vector-knowledge-base)
-- [📄 Resume Summary Highlights](#-resume-summary-highlights)
-- [👤 Author & Support](#-author--support)
-
----
-
-## 📖 About the Project
-
-**SentinAI** is a full-stack security proxy and autonomous code auditing platform built for modern software teams. When developers open or update a Pull Request on GitHub:
-1. **Webhook Interception**: `SentinAI` intercepts webhook payloads, pulls code diffs, and verifies HMAC-SHA256 signatures.
-2. **RAG Context Retrieval**: Queries a **PgVector** 768-dimension vector store via LangChain4j to extract cross-file repository context.
-3. **AST Vulnerability Audit**: Passes diffs and structural context to **Google Gemini 2.5 Pro** for automated static analysis (detecting SQL injection, resource leaks, concurrency locks, and secret exposures).
-4. **Resilient Delivery**: Posts structured inline reviews to GitHub while maintaining an audit trail in PostgreSQL and caching results in Redis.
-
-> [!IMPORTANT]
-> **Production Resiliency**: Implements a `FallbackEmbeddingStore` circuit breaker to prevent Spring Boot startup context crashes during cloud database reconnect cycles, ensuring 99.9% application uptime.
-
----
-
-## ⚡ Features
-
-| Feature | Category | Description |
-| :--- | :--- | :--- |
-| **🤖 Autonomous AI Audit** | AI & AST Security | Inspects PR code diffs and classifies vulnerabilities (`CRITICAL`, `WARNING`, `INFO`). |
-| **🧠 PgVector RAG Engine** | Vector Knowledge Base | Embeds source code files into 768-dimension vectors for semantic codebase similarity queries. |
-| **🎨 Technical Minimalist Console** | UI/UX | High-contrast Obsidian/Cyber Teal UI with 60fps 3D particle hero canvas and 58/42 split PR Studio. |
-| **🔐 Zero-Trust Key Governance** | Security | SHA-256 API key hashing, client rate-limiting, instant key revocation, and HMAC webhook verification. |
-| **⏱️ Redis & Fallback Limiter** | Infrastructure | Limits client API calls to 10 req/min with an in-memory thread-safe local fallback map when Redis is offline. |
-| **📚 Docs & Explanation Studio** | Developer Tools | Generates AST breakdown documentation and exports markdown architecture summaries. |
-
----
-
-## 🏗️ Architecture
+SentinAI operates as a distributed microservice architecture consisting of a **Spring Boot 4 Core Backend**, a **FastAPI + LangGraph Multi-Agent Service**, a **React + Vite Developer Dashboard**, and persistent storage backed by **PostgreSQL (with PgVector)** and **Redis**.
 
 ```mermaid
-graph TD
-    GH[GitHub Webhook / REST Client] -->|HTTP Request| API[Spring Boot 3.4 Web MVC]
-    API -->|1. Authenticate| SEC[Security Filter / ApiKeyAuthFilter]
-    SEC -->|2. Check Rate Limit| RL[Rate Limiter / Redis + Local Fallback]
-    RL -->|3. Fetch Vector Context| RAG[PgVector 768-Dim Vector Store]
+flowchart TD
+    subgraph Clients & Webhooks
+        GH[GitHub Webhook / PR Event]
+        FE[React Dashboard (Vite @ :5173)]
+        CLI[External API Client / Curl]
+    end
+
+    subgraph Core System Boundaries
+        subgraph Java Backend ["Spring Boot Backend (:8080)"]
+            SEC[Security & ApiKeyAuthFilter]
+            R_CTRL[ReviewController]
+            W_CTRL[WebhookController]
+            C_CTRL[ChatController / RAG]
+            D_CTRL[DocStudioController]
+            S_CTRL[SonarController]
+            K_CTRL[ApiKeyController]
+            
+            FLY[Flyway Database Migrations]
+            JPA[Spring Data JPA / Hibernate]
+            LC4J[LangChain4j Engine]
+        end
+
+        subgraph Python Agent ["Agent Microservice (:8000)"]
+            FASTAPI[FastAPI Router]
+            LG_SEC[LangGraph Security Agent]
+            LG_PERF[LangGraph Performance Agent]
+            LG_AGG[LangGraph Aggregator Node]
+        end
+    end
+
+    subgraph Data & Storage Layer
+        PG[(PostgreSQL 16+)]
+        PGV[(PgVector Store - 768d)]
+        REDIS[(Redis Cache & Rate Limiter)]
+        GEMINI[Google Gemini 1.5 Flash API]
+        SONAR[SonarQube Server]
+    end
+
+    GH -->|POST /api/v1/webhook/github| W_CTRL
+    FE -->|API Requests + X-API-Key| SEC
+    CLI -->|API Requests + X-API-Key| SEC
     
-    RAG -->|4. Cross-File Context| LLM[Google Gemini 2.5 Pro Engine]
-    LLM -->|5. Structured Audit JSON| DB[PostgreSQL Audit Log]
-    
-    DB -->|6. Cache Audit Result| CH[Redis Review Cache]
-    DB --> OUT[Post Comment / Return REST Response]
-    OUT -->|Inline PR Comments| GH
+    SEC --> R_CTRL
+    SEC --> C_CTRL
+    SEC --> D_CTRL
+    SEC --> S_CTRL
+    SEC --> K_CTRL
+
+    R_CTRL -->|Cache Check & Eviction| REDIS
+    R_CTRL -->|Save / Fetch Reviews| JPA
+    R_CTRL -->|LLM Review Generation| GEMINI
+    R_CTRL -->|HTTP Delegate| FASTAPI
+
+    C_CTRL -->|Code Embeddings Search| LC4J
+    LC4J -->|Vector Similarity Queries| PGV
+
+    FASTAPI --> LG_SEC --> LG_PERF --> LG_AGG --> GEMINI
+
+    JPA --> PG
+    FLY --> PG
+    S_CTRL -->|REST Issue Query| SONAR
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Core Components
 
-- **Backend Framework:** Java 21, Spring Boot 3.4, Spring Security, Spring Data JPA, WebFlux
-- **AI & RAG Pipeline:** LangChain4j, Google Gemini 2.5 Pro API, PgVector (768-dimension vectors)
-- **Frontend Architecture:** React 19, TypeScript, Vite 8, Framer Motion, Lucide Icons, Custom CSS Tokens
-- **Database & Caching:** PostgreSQL 16, Redis 7, Flyway Database Migrations
-- **DevOps & Cloud:** Docker Multi-stage builds, Render (Backend), Vercel (Frontend), GitHub Actions
+| Component | Stack | Directory | Description |
+| :--- | :--- | :--- | :--- |
+| **Java Core Backend** | Spring Boot 4.1.0, Java 21, HikariCP, Flyway | `prReviewBot/` | Primary API orchestrator handling GitHub PR fetching, review persistence, RAG indexing, API key authentication, rate limiting, and webhook validation. |
+| **Agent Microservice** | Python 3.11+, FastAPI 0.110+, LangGraph | `agent-service/` | Specialized multi-agent audit pipeline executing automated security checks, memory/performance bottleneck analysis, and executive synthesis using Gemini models. |
+| **Developer Dashboard** | React 18, TypeScript, Vite 5, Tailwind CSS | `dashboard-react/` | Modern single-page web interface for visualizing PR review scorecards, interactive RAG repository chat, API key management, and SonarQube static metrics. |
+| **Legacy Prototype** | Plain HTML5, Vanilla JavaScript, Python Demo Server | `dashboard/` | *(Unintegrated)* Initial static prototype used during early UI ideation. Superseded by `dashboard-react/`. |
 
 ---
 
-## 📂 Folder Structure
+## Tech Stack & Versions
 
-```text
+- **JDK / Runtime**: OpenJDK 21 (Eclipse Temurin)
+- **Framework**: Spring Boot `4.1.0` (`spring-boot-starter-parent`)
+- **Python Runtime**: Python `3.11+`
+- **FastAPI / LangGraph**: `fastapi>=0.110.0`, `langgraph>=0.0.26`, `langchain-google-genai`
+- **Frontend Stack**: React `18.3.1`, TypeScript `5.5`, Vite `5.4.1`, Tailwind CSS `3.4.1`
+- **Database & Migrations**: PostgreSQL 16+ with `pgvector` extension, Flyway 10+ (`spring-boot-starter-flyway`)
+- **Cache & Rate Limiting**: Redis 7+ (`spring-boot-starter-data-redis` / Lettucectx)
+- **AI Integrations**: LangChain4j (`1.15.1`), Google Gemini 1.5 Flash API
+- **Static Analysis**: SonarQube Web API Integration
+
+---
+
+## Repository Structure
+
+```
 AICodeReviewBot/
-├── vercel.json                    # Root Vercel deployment configuration
-├── dashboard-react/               # SentinAI Technical Minimalist Frontend
-│   ├── vercel.json                # Subdirectory Vercel build override
-│   ├── src/
-│   │   ├── components/            # Reusable UI components
-│   │   │   ├── Hero3DCanvas.tsx   # 60fps 3D particle canvas background
-│   │   │   └── LockscreenModal.tsx # Zero-trust authentication key gate
-│   │   ├── pages/                 # Redesigned Stitch Page Modules
-│   │   │   ├── LandingPage.tsx    # Hero canvas & quick PR audit runner
-│   │   │   ├── OverviewDashboard.tsx # System metrics & review telemetry
-│   │   │   ├── PRDiffStudio.tsx   # 58/42 split PR diff & auto-fix applicator
-│   │   │   ├── DocsStudio.tsx     # AST documentation generator & export
-│   │   │   ├── RAGStudio.tsx      # PgVector vector store inspector
-│   │   │   └── CredentialsManager.tsx # Client API key governance
-│   │   ├── services/
-│   │   │   └── api.ts             # Centralized REST API service client
-│   │   ├── types/                 # TypeScript DTO models
-│   │   ├── App.tsx                # Main routing & application shell
-│   │   └── index.css              # Obsidian & Cyber Teal design tokens
-├── prReviewBot/                   # Spring Boot 3.4 Java Backend
-│   ├── src/main/java/com/proj/prreviewbot/
-│   │   ├── config/                # Security, CORS & FallbackEmbeddingStore
-│   │   ├── controller/            # Review, ApiKey, DocStudio & Chat Controllers
-│   │   ├── dto/                   # REST Data Transfer Objects
-│   │   ├── entity/                # JPA Persistence Entities
-│   │   ├── repository/            # Spring Data Repositories
-│   │   └── service/               # Gemini LLM, RAG, GitHub & RateLimiter Services
-│   ├── Dockerfile                 # Multi-stage Java 21 container builder
-│   └── pom.xml                    # Maven dependencies
+├── agent-service/               # Python FastAPI + LangGraph Multi-Agent Microservice
+│   ├── main.py                  # Entry point (Security, Performance & Aggregator graph nodes)
+│   ├── requirements.txt         # Python dependencies
+│   └── Dockerfile               # Container build configuration for Python service
+├── dashboard-react/             # Production React + TypeScript + Vite Web Dashboard
+│   ├── src/                     # React components, API services, and pages
+│   ├── package.json             # Node dependencies and build scripts
+│   └── vite.config.ts           # Vite build configuration
+├── dashboard/                   # [LEGACY] Unintegrated static HTML demo prototype (Superseded)
+│   ├── index.html               # Legacy static preview layout
+│   └── demo.py                  # Legacy standalone Python preview server
+├── docs/                        # Project documentation assets and images
+│   └── images/                  # Screenshots and architectural diagrams
+├── prReviewBot/                 # Main Java Spring Boot Core Service
+│   ├── src/main/java/           # Spring Boot source code (Controllers, Services, DTOs, Entities)
+│   ├── src/main/resources/      # Application properties and Flyway SQL migrations (db/migration/)
+│   ├── pom.xml                  # Maven project POM (Spring Boot 4.1.0, Java 21)
+│   ├── Dockerfile               # Multi-stage Maven + Eclipse Temurin 21 Dockerfile
+│   └── .github/workflows/       # [MISPLACED] Legacy CI deployment workflow (See Known Limitations)
+├── render.yaml                  # Infrastructure-as-code template for Render deployment
+└── README.md                    # System documentation
 ```
 
 ---
 
-## 🔌 API Documentation
+## Environment Variables & Configuration
 
-All endpoints are hosted under `/api/v1`:
+The Java backend (`prReviewBot`) and Python microservice (`agent-service`) accept the following environment variables:
 
-### 1. Code Review Endpoints (`/api/v1/review`)
-- `POST /api/v1/review` — Triggers an automated AI code review for a given PR URL and commit SHA.
-- `GET /api/v1/review/history` — Retrieves historical PR audit logs.
-- `GET /api/v1/health-check` — Returns backend health telemetry status.
-
-### 2. RAG Knowledge Store Endpoints (`/api/v1`)
-- `POST /api/v1/rag/index` — Indexes a GitHub repository into PgVector (supports sync and async modes).
-- `POST /api/v1/chat` — Queries codebase semantic context via similarity search.
-
-### 3. Key Governance Endpoints (`/api/v1/keys`)
-- `POST /api/v1/keys/generate` — Issues a new client API key.
-- `GET /api/v1/keys` — Lists active client credentials.
-- `DELETE /api/v1/keys/{id}` — Revokes an API key instantly.
-
-### 4. Docs Studio Endpoints (`/api/v1/doc`)
-- `POST /api/v1/doc/explain` — Generates AST structural breakdown and architectural documentation.
-
----
-
-## 🔐 Authentication & Zero-Trust Governance
-
-- **SHA-256 Hashing**: API keys are generated with secure prefixes (`sentin_live_`), hashed via SHA-256, and stored safely in the database.
-- **HMAC Signatures**: GitHub webhooks are verified using HMAC-SHA256 signature matching.
-- **Rate Limiting**: Enforces strict request windows with dynamic fallbacks if Redis is unreachable.
+| Variable Name | Required | Default Value | Description |
+| :--- | :---: | :--- | :--- |
+| `SPRING_PROFILES_ACTIVE` | No | `dev` | Active Spring profile (`dev` or `prod`). `prod` sets `ddl-auto=validate`. |
+| `PORT` | No | `8080` (Java) / `8000` (Python) | Application server HTTP port. |
+| `GITHUB_TOKEN` | **Yes** | *None* | GitHub Personal Access Token for fetching PR diffs and posting review comments. |
+| `GEMINI_API_KEY` | **Yes** | *None* | Google Gemini API Key used by LangChain4j and LangGraph agents. |
+| `WEBHOOK_SECRET` | No | `default-webhook-secret` | HMAC-SHA256 secret key for validating GitHub webhook payloads. |
+| `SPRING_DATASOURCE_URL` | **Yes** | `jdbc:postgresql://localhost:5432/codereviewdb` | PostgreSQL JDBC connection URL. |
+| `SPRING_DATASOURCE_USERNAME`| **Yes** | `rachit` | PostgreSQL database user. |
+| `SPRING_DATASOURCE_PASSWORD`| **Yes** | `rachit123` | PostgreSQL database password. |
+| `SPRING_DATA_REDIS_HOST` | No | `localhost` | Redis server hostname. |
+| `SPRING_DATA_REDIS_PORT` | No | `6379` | Redis server port. |
+| `SPRING_DATA_REDIS_PASSWORD`| No | *Empty* | Redis server password (if required). |
+| `CORS_ALLOWED_ORIGINS` | No | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated CORS allowed origins. |
+| `SONARQUBE_URL` | No | `http://localhost:9000` | SonarQube server base URL. |
+| `SONARQUBE_TOKEN` | No | *Empty* | SonarQube authentication token. |
 
 ---
 
-## 📄 Resume Summary Highlights
+## API Reference
 
-> **Copy & Paste into your Resume / Portfolio:**
+### 1. Spring Boot Core Service (`prReviewBot`)
 
-```text
-SentinAI — Autonomous AI Code Review & Security System (Java 21, Spring Boot 3.4, React, PgVector)
-• Architected a full-stack security auditing platform that intercepts GitHub PR webhooks and performs AST vulnerability scans using Google Gemini 2.5 Pro and LangChain4j.
-• Engineered a RAG vector knowledge base using PgVector (768-dimension embeddings) to provide semantic cross-file repository context during AI security reviews.
-• Implemented high-resiliency backend patterns including a FallbackEmbeddingStore circuit breaker, SHA-256 zero-trust API key governance, and Redis rate-limiting with thread-safe local fallbacks.
-• Redesigned the frontend into a technical minimalist dark-obsidian console with React 19, TypeScript, Vite, Framer Motion, and a custom 58/42 split-pane PR Diff Studio.
-• Deployed microservices via Docker, Render (Spring Boot backend), and Vercel (React frontend) with automated CI/CD GitHub Actions pipelines.
+#### **API Key Management (`/api/v1/keys`)**
+- `POST /api/v1/keys/generate`: Generate a new client API key (`X-API-Key`).
+- `GET /api/v1/keys`: List metadata for all generated API keys.
+- `DELETE /api/v1/keys/{id}`: Revoke an API key by its UUID.
+
+#### **Code Review & History (`/api/v1`)**
+- `POST /api/v1/review`: Trigger automated AI review for a GitHub PR URL. Fetches PR diff, checks Redis cache, invokes LLM, persists findings to Postgres, and posts back to GitHub.
+- `GET /api/v1/review/{id}`: Retrieve detailed review findings by review UUID.
+- `GET /api/v1/review/history`: List history of all past pull request reviews.
+- `DELETE /api/v1/review/{id}`: Delete review record from Postgres and evict cached entry from Redis.
+- `GET /api/v1/health-check`: Simple health status endpoint (unauthenticated).
+
+#### **RAG Repository Chat & Indexing (`/api/v1`)**
+- `POST /api/v1/chat`: Query indexed repository codebase using PgVector vector embeddings.
+- `POST /api/v1/rag/index`: Index source code files from local/cloned repository paths into PgVector (supports `sync=true` or asynchronous background execution).
+
+#### **Doc Studio (`/api/v1/doc`)**
+- `POST /api/v1/doc/explain`: Explain complex code snippets in natural language.
+- `POST /api/v1/doc/generate`: Auto-generate structured documentation (e.g. README, API Specs) for codebases.
+
+#### **SonarQube Integration (`/api/v1/sonar`)**
+- `GET /api/v1/sonar/issues`: Fetch static analysis code smells, vulnerabilities, and metrics from SonarQube.
+
+#### **GitHub Webhook (`/api/v1/webhook`)**
+- `POST /api/v1/webhook/github`: Asynchronous webhook handler for GitHub `pull_request` events with HMAC-SHA256 signature verification (`X-Hub-Signature-256`).
+
+---
+
+### 2. Python LangGraph Agent Microservice (`agent-service`)
+
+- `GET /health`: Health status of the Python LangGraph microservice.
+- `POST /api/v1/agent/review`: Runs multi-agent LangGraph workflow (`SecurityAgent` -> `PerformanceAgent` -> `Aggregator`) over code diffs.
+
+---
+
+## Authentication & Security Model
+
+SentinAI enforces API key authentication and sliding-window rate limiting via a custom Spring Security filter:
+
+1. **Custom Filter Pipeline**: `ApiKeyAuthFilter` intercepts incoming requests prior to Spring Security's `UsernamePasswordAuthenticationFilter`.
+2. **Key Validation**: Checks the `X-API-Key` HTTP header, hashes the incoming token using SHA-256, and verifies it against the `api_keys` table in PostgreSQL.
+3. **Rate Limiting**: Uses `RateLimiterService` to track client request volume against Redis (falling back to in-memory sliding windows if Redis is unavailable). Enforces a limit of **10 requests per minute per client key**, returning HTTP `429 Too Many Requests` when exceeded.
+4. **Public Exemptions**: The following paths bypass API key authentication:
+   - `/api/v1/health-check`
+   - `/api/v1/keys/generate`
+   - `/api/v1/webhook/github`
+   - `/actuator/**`, `/v3/api-docs/**`, `/swagger-ui/**`
+
+---
+
+## Running Locally
+
+### Prerequisites
+- Java 21 JDK installed (`java -version`)
+- Maven 3.9+ (`mvn -version`)
+- Python 3.11+ and `pip`
+- Node.js 18+ and `npm`
+- Running PostgreSQL 16 instance with `pgvector` extension
+- Running Redis instance
+
+### Step 1: Start PostgreSQL & Redis
+```bash
+docker run -d --name sentinai-postgres -p 5432:5432 \
+  -e POSTGRES_DB=codereviewdb \
+  -e POSTGRES_USER=rachit \
+  -e POSTGRES_PASSWORD=rachit123 \
+  ankane/pgvector:v0.5.1
+
+docker run -d --name sentinai-redis -p 6379:6379 redis:7-alpine
+```
+
+### Step 2: Run Spring Boot Backend
+```bash
+cd prReviewBot
+export GITHUB_TOKEN="your_github_token"
+export GEMINI_API_KEY="your_gemini_api_key"
+mvn spring-boot:run
+```
+
+### Step 3: Run Python Agent Microservice
+```bash
+cd agent-service
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+export GEMINI_API_KEY="your_gemini_api_key"
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Step 4: Run React Developer Dashboard
+```bash
+cd dashboard-react
+npm install
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## Docker Deployment
+
+Both backend components contain production Dockerfiles.
+
+### Build & Run Java Backend Container:
+```bash
+cd prReviewBot
+docker build -t sentinai-backend .
+docker run -p 8080:8080 \
+  -e GITHUB_TOKEN="your_token" \
+  -e GEMINI_API_KEY="your_key" \
+  -e SPRING_DATASOURCE_URL="jdbc:postgresql://host.docker.internal:5432/codereviewdb" \
+  sentinai-backend
+```
+
+### Build & Run Python Agent Container:
+```bash
+cd agent-service
+docker build -t sentinai-agent .
+docker run -p 8000:8000 -e GEMINI_API_KEY="your_key" sentinai-agent
 ```
 
 ---
 
-## 👤 Author & Support
+## Known Limitations & Configuration Drift
 
-- **GitHub:** [@rachit-890](https://github.com/rachit-890)
-- **LinkedIn:** [Rachit Kushwaha](https://www.linkedin.com/in/rachit-kushwaha-8b8714297/)
-- **Portfolio:** [Rachit's Portfolio](https://my-portfolio-gamma-five-86.vercel.app/)
-- **Email:** [rachitkushwaha890@gmail.com](mailto:rachitkushwaha890@gmail.com)
+1. **`render.yaml` Infrastructure Drift**: The blueprint file `render.yaml` specifies hardcoded database names (`codereviewdb`) and users (`rachit`). In actual Render cloud deployments, managed PostgreSQL instances generate random database names and user credentials (e.g. `code_review_db_59f8`). `render.yaml` serves as an initial template and must be updated to align with active credentials.
+2. **Misplaced GitHub Actions Workflow**: The workflow configuration `deploy.yml` currently resides at `prReviewBot/.github/workflows/deploy.yml`. GitHub Actions requires workflow files to be located at the root level (`.github/workflows/deploy.yml`). As a result, automated CI/CD triggers on push/PR are currently inactive.
+3. **Legacy Prototype Directory**: The root `/dashboard` directory contains an unintegrated static HTML/Python prototype. It is obsolete and superseded by `dashboard-react/`.
+4. **Render Free-Tier Storage**: PostgreSQL databases created under Render's free tier automatically expire after 90 days of continuous operation. Production deployments require upgrading to a persistent database tier or re-provisioning.
 
-If you find SentinAI helpful, please consider giving the repository a ⭐!
+---
+
+## Project Summary
+
+> **SentinAI Architecture Summary**
+> SentinAI is a cloud-native automated code review platform built with a Java 21 / Spring Boot 4 backend and a FastAPI / LangGraph Python agent microservice. The platform integrates Google Gemini 1.5 Flash models to execute deterministic security and performance audits on GitHub pull requests. Codebase context is embedded into a PostgreSQL PgVector store via LangChain4j for real-time semantic retrieval (RAG). API key authentication and rate limiting are handled via Redis sliding windows, and findings are surfaced through a React 18 + Vite developer dashboard.
+
+---
+
+## License & Maintainer
+
+Maintained by **Rachit** ([@rachit-890](https://github.com/rachit-890)).  
+Licensed under the MIT License.

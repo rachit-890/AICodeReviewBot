@@ -4,96 +4,68 @@ SentinAI is an automated pull request review and codebase intelligence platform.
 
 The system listens for GitHub pull request webhooks, executes automated security and performance code audits using Google Gemini models, computes vector embeddings over repository source files into PostgreSQL PgVector for retrieval-augmented generation (RAG) codebase chat, and tracks client access quotas using Redis rate limiting.
 
-![SentinAI Code Security and Pull Request Intelligence](docs/images/sentinai_features_landing.png)
+---
+
+## Visual Workflow
+
+![SentinAI Code Security and Pull Request Intelligence Dashboard](docs/images/sentinai_features_landing.png)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Developer as Developer / GitHub
+    participant Gateway as ApiKeyAuthFilter (Spring Security)
+    participant Redis as Redis (Rate Limiter & Cache)
+    participant Backend as Java Core (prReviewBot :8080)
+    participant Agent as Python Microservice (agent-service :8000)
+    participant Gemini as Google Gemini AI API
+    participant VectorDB as PostgreSQL 18 (PgVector)
+
+    Developer->>Gateway: POST /api/v1/review (X-API-Key + PR URL)
+    Gateway->>Redis: Check Sliding-Window Rate Limit (Max 10 req/min)
+    Redis-->>Gateway: Rate Limit Allowed
+    Gateway->>Backend: Pass Request to ReviewController
+
+    Backend->>Redis: Query Cached Review (PR URL + Head SHA)
+    alt Cache Hit
+        Redis-->>Backend: Return Cached Review Scorecard
+    else Cache Miss
+        Backend->>Developer: Fetch Pull Request Diff via GitHub API
+        Backend->>Gemini: Request Initial LLM Analysis (gemini-2.5-flash)
+        Backend->>Agent: Delegate Multi-Agent Audit (POST /api/v1/agent/review)
+        
+        Note over Agent: LangGraph Pipeline Execution
+        Agent->>Gemini: Security Agent Audit (gemini-1.5-flash)
+        Agent->>Gemini: Performance Agent Audit (gemini-1.5-flash)
+        Agent->>Gemini: Aggregator Node Synthesis
+        Agent-->>Backend: Return Combined Multi-Agent Findings
+        
+        Backend->>VectorDB: Query Semantic Code Context (text-embedding-004)
+        VectorDB-->>Backend: Return Similarity Matches (PgVector)
+        
+        Backend->>VectorDB: Save Complete Review Scorecard
+        Backend->>Redis: Cache Review Result
+    end
+
+    Backend-->>Developer: Return Final Review Scorecard & Post GitHub Comment
+```
+
+![SentinAI Developer Dashboard Scorecard & RAG Interface](docs/images/sentinai_dashboard_preview.png)
 
 ---
 
 ## Table of Contents
 
-- [Architecture & Request Flow](#architecture--request-flow)
+- [Visual Workflow](#visual-workflow)
 - [Technologies Used](#technologies-used)
 - [Requirements](#requirements)
 - [Installation Instructions](#installation-instructions)
 - [Usage Instructions](#usage-instructions)
-- [Visuals](#visuals)
 - [Support Information](#support-information)
-- [Project Roadmap](#project-roadmap)
 - [Project Status & Known Limitations](#project-status--known-limitations)
 - [Contribution Guidelines](#contribution-guidelines)
 - [Acknowledgments](#acknowledgments)
 - [License Information](#license-information)
-
----
-
-## Architecture & Request Flow
-
-SentinAI is structured into three distinct runtime services:
-
-1. **Java Core Backend (`prReviewBot`)**: Primary API orchestrator that handles GitHub API interactions, Postgres database persistence, PgVector repository indexing, API key authentication, rate limiting, and webhook validation.
-2. **Python Agent Microservice (`agent-service`)**: Independent FastAPI microservice executing multi-agent security and performance review graphs constructed with LangGraph.
-3. **React Developer Dashboard (`dashboard-react`)**: Modern single-page web interface for visualizing code reviews, chatting with indexed codebases, generating API keys, and inspecting SonarQube metrics.
-
-```mermaid
-flowchart TD
-    subgraph Clients & Entry Points
-        GH[GitHub Webhook / PR Event]
-        FE[React Dashboard (Vite @ :5173)]
-        CLI[External Client / cURL]
-    end
-
-    subgraph Java Backend ["Java Core Backend (:8080)"]
-        SEC[SecurityConfig & ApiKeyAuthFilter]
-        R_CTRL[ReviewController /api/v1/review]
-        W_CTRL[WebhookController /api/v1/webhook/github]
-        C_CTRL[ChatController /api/v1/chat & /api/v1/rag/index]
-        D_CTRL[DocStudioController /api/v1/doc/*]
-        S_CTRL[SonarController /api/v1/sonar/issues]
-        K_CTRL[ApiKeyController /api/v1/keys]
-
-        FLY[Flyway Migrations]
-        JPA[Spring Data JPA]
-        LC4J[LangChain4j Engine]
-    end
-
-    subgraph Python Microservice ["Python Agent Service (:8000)"]
-        FASTAPI[FastAPI Router /api/v1/agent/review]
-        LG_SEC[LangGraph Security Agent]
-        LG_PERF[LangGraph Performance Agent]
-        LG_AGG[LangGraph Aggregator]
-    end
-
-    subgraph Storage & External Services
-        PG[(PostgreSQL 18 + PgVector)]
-        REDIS[(Redis 7+ Cache & Rate Limiter)]
-        GEMINI_JAVA[Google Gemini 2.5 Flash]
-        GEMINI_PY[Google Gemini 1.5 Flash]
-        SONAR[SonarQube Server]
-    end
-
-    GH -->|POST /api/v1/webhook/github| W_CTRL
-    FE -->|HTTP + X-API-Key| SEC
-    CLI -->|HTTP + X-API-Key| SEC
-
-    SEC --> R_CTRL
-    SEC --> C_CTRL
-    SEC --> D_CTRL
-    SEC --> S_CTRL
-    SEC --> K_CTRL
-
-    R_CTRL -->|Check Cache / Evict| REDIS
-    R_CTRL -->|Save / Read Reviews| JPA
-    R_CTRL -->|LLM Review Generation| GEMINI_JAVA
-    R_CTRL -->|Multi-Agent Audit Request| FASTAPI
-
-    C_CTRL -->|Generate Embeddings| LC4J
-    LC4J -->|PgVector Cosine Search| PG
-
-    FASTAPI --> LG_SEC --> LG_PERF --> LG_AGG --> GEMINI_PY
-
-    JPA --> PG
-    FLY --> PG
-    S_CTRL -->|REST Query| SONAR
-```
 
 ---
 
@@ -276,30 +248,12 @@ curl -X POST http://localhost:8080/api/v1/doc/explain \
 
 ---
 
-## Visuals
-
-The project includes actual interface screenshots stored under [`docs/images/`](docs/images/):
-
-- [`docs/images/sentinai_features_landing.png`](docs/images/sentinai_features_landing.png): Main SentinAI Code Security and PR Intelligence dashboard overview.
-- [`docs/images/sentinai_dashboard_preview.png`](docs/images/sentinai_dashboard_preview.png): Detailed scorecards, RAG chat interface, and governance view.
-
----
-
 ## Support Information
 
 If you encounter issues or find bugs during local setup or deployment:
 
 - **GitHub Issues**: Submit bug reports and feature requests directly at [github.com/rachit-890/AICodeReviewBot/issues](https://github.com/rachit-890/AICodeReviewBot/issues).
 - **Maintainer**: Rachit ([@rachit-890](https://github.com/rachit-890)).
-
----
-
-## Project Roadmap
-
-- [ ] **Fix Workflow File Location**: Move `prReviewBot/.github/workflows/deploy.yml` to `.github/workflows/deploy.yml` at the repository root so GitHub Actions triggers automatically on push/PR.
-- [ ] **Reconcile Blueprint Drift**: Update [`render.yaml`](render.yaml) to match active deployment configurations (e.g. region selection, dynamic database user parameters).
-- [ ] **Database Migration Plan**: Upgrade the Render PostgreSQL instance from the free tier before the fixed operational window expires.
-- [ ] **Clean Up Legacy Directory**: Purge or replace the obsolete, unintegrated prototype directory located at `/dashboard`.
 
 ---
 

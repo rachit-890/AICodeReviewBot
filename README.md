@@ -4,11 +4,11 @@ SentinAI is an automated pull request review and codebase intelligence platform.
 
 The system listens for GitHub pull request webhooks, executes automated security and performance code audits using Google Gemini models, computes vector embeddings over repository source files into PostgreSQL PgVector for retrieval-augmented generation (RAG) codebase chat, and tracks client access quotas using Redis rate limiting.
 
+![SentinAI Code Security and Pull Request Intelligence Dashboard](docs/images/sentinai_features_landing.png)
+
 ---
 
 ## Visual Workflow
-
-![SentinAI Code Security and Pull Request Intelligence Dashboard](docs/images/sentinai_features_landing.png)
 
 ```mermaid
 sequenceDiagram
@@ -49,8 +49,6 @@ sequenceDiagram
 
     Backend-->>Developer: Return Final Review Scorecard & Post GitHub Comment
 ```
-
-![SentinAI Developer Dashboard Scorecard & RAG Interface](docs/images/sentinai_dashboard_preview.png)
 
 ---
 

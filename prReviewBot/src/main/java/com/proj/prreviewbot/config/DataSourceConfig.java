@@ -115,18 +115,16 @@ public class DataSourceConfig {
         if (matcher.find()) {
             String host = matcher.group(1);
 
-            // Fail fast if a bare internal Render hostname (no dot) is provided
-            if (host.matches("^dpg-[a-zA-Z0-9-]+$") && !host.contains(".")) {
-                throw new IllegalStateException(
-                    "Invalid Render Database configuration: An internal-format host ('" + host + "') was provided. " +
-                    "Render internal hostnames cannot be resolved outside their internal network or guessed into FQDNs. " +
-                    "To fix this: (a) If your web service and database are in the same Render region, use the Internal Connection String unmodified with SSL disabled, or " +
-                    "(b) If connecting across regions or externally, use Render's External Database URL (e.g. 'dpg-xxxx-a.<region>-postgres.render.com') in your environment variables."
-                );
+            // Allow bare internal Render hostnames (no dots) as-is without forcing SSL
+            if (!host.contains(".")) {
+                if (host.startsWith("dpg-")) {
+                    log.info("Using internal Render database host '{}' as-is without SSL", host);
+                }
+                return url;
             }
 
             // Only append sslmode=require if host is a fully-qualified external Render host (contains a dot)
-            if ((host.contains("render.com") || host.startsWith("dpg-")) && host.contains(".")) {
+            if (host.contains("render.com") || host.startsWith("dpg-")) {
                 if (!url.contains("sslmode=")) {
                     if (url.contains("?")) {
                         url = url + "&sslmode=require";
